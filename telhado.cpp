@@ -2,27 +2,45 @@
 #include "constantes.h"
 
 void desenha_telhas() {
-    float altura_telhas = ALTURA + (LARGURA/2) * INCLINACAO_TELHADO;
-    glColor3f(0.8f, 0.2f, 0.2f); // Vermelho telha
+    // Telhado colonial com 30% de inclinação conforme a planta
+    float base_y = ALTURA_PLATAFORMA; // Base do telhado na altura da plataforma
+    float altura_cumeeira = base_y + ALTURA + ALTURA_TELHADO;
+    glColor3f(0.7f, 0.3f, 0.2f); // Cor de telha colonial
 
-    float normal_x = INCLINACAO_TELHADO;
-    float normal_y = 1.0f - INCLINACAO_TELHADO;
-
-    // Lado esquerdo
-    glNormal3f(-normal_x, normal_y, 0.0f);
+    // Água esquerda do telhado
+    glNormal3f(-INCLINACAO_TELHADO, 1.0f, 0.0f);
     glBegin(GL_QUADS);
-        glVertex3f(-LARGURA/2, ALTURA, 0);
-        glVertex3f( 0, altura_telhas, 0);
-        glVertex3f( 0, altura_telhas, -COMPRIMENTO);
-        glVertex3f(-LARGURA/2, ALTURA, -COMPRIMENTO);
+        glVertex3f(-LARGURA/2, base_y + ALTURA, 0);
+        glVertex3f(0, altura_cumeeira, 0);
+        glVertex3f(0, altura_cumeeira, -COMPRIMENTO);
+        glVertex3f(-LARGURA/2, base_y + ALTURA, -COMPRIMENTO);
     glEnd();
 
-    // Lado direito
-    glNormal3f(normal_x, normal_y, 0.0f);
+    // Água direita do telhado
+    glNormal3f(INCLINACAO_TELHADO, 1.0f, 0.0f);
     glBegin(GL_QUADS);
-        glVertex3f(LARGURA/2, ALTURA, 0);
-        glVertex3f(0, altura_telhas, 0);
-        glVertex3f(0, altura_telhas, -COMPRIMENTO);
-        glVertex3f(LARGURA/2, ALTURA, -COMPRIMENTO);
+        glVertex3f(LARGURA/2, base_y + ALTURA, 0);
+        glVertex3f(0, altura_cumeeira, 0);
+        glVertex3f(0, altura_cumeeira, -COMPRIMENTO);
+        glVertex3f(LARGURA/2, base_y + ALTURA, -COMPRIMENTO);
+    glEnd();
+    
+    // Empenas (triângulos frontais e traseiros)
+    glColor3f(0.95f, 0.95f, 0.9f); // Mesma cor das paredes
+    
+    // Empena frontal
+    glNormal3f(0.0f, 0.0f, 1.0f);
+    glBegin(GL_TRIANGLES);
+        glVertex3f(-LARGURA/2, base_y + ALTURA, 0);
+        glVertex3f(LARGURA/2, base_y + ALTURA, 0);
+        glVertex3f(0, altura_cumeeira, 0);
+    glEnd();
+    
+    // Empena traseira
+    glNormal3f(0.0f, 0.0f, -1.0f);
+    glBegin(GL_TRIANGLES);
+        glVertex3f(-LARGURA/2, base_y + ALTURA, -COMPRIMENTO);
+        glVertex3f(LARGURA/2, base_y + ALTURA, -COMPRIMENTO);
+        glVertex3f(0, altura_cumeeira, -COMPRIMENTO);
     glEnd();
 }

@@ -7,13 +7,31 @@
 // Função para desenhar o chão
 void desenha_chao() {
     float tamanho = 200.0f;
-    glColor3f(0.3f, 0.7f, 0.3f); // Verde grama
+    
+    // Chão principal - concreto urbano como na imagem
+    glColor3f(0.6f, 0.6f, 0.62f); // Cinza concreto
     glNormal3f(0.0f, 1.0f, 0.0f);
     glBegin(GL_QUADS);
         glVertex3f(-tamanho, 0.0f, -tamanho);
         glVertex3f( tamanho, 0.0f, -tamanho);
         glVertex3f( tamanho, 0.0f,  tamanho);
         glVertex3f(-tamanho, 0.0f,  tamanho);
+    glEnd();
+    
+    // Adicionar algumas linhas de divisão no concreto
+    glColor3f(0.5f, 0.5f, 0.52f); // Linha mais escura
+    glLineWidth(2.0f);
+    glBegin(GL_LINES);
+        // Linhas horizontais
+        for (int i = -5; i <= 5; i++) {
+            glVertex3f(-tamanho, 0.01f, i * 20.0f);
+            glVertex3f(tamanho, 0.01f, i * 20.0f);
+        }
+        // Linhas verticais
+        for (int i = -5; i <= 5; i++) {
+            glVertex3f(i * 20.0f, 0.01f, -tamanho);
+            glVertex3f(i * 20.0f, 0.01f, tamanho);
+        }
     glEnd();
 }
 
@@ -78,6 +96,8 @@ void atualiza_camera_mouse(int x, int y) {
 
 void atualiza_movimento() {
     float move_x = 0.0f, move_z = 0.0f;
+    
+    // Movimento com WASD
     if (keyStates['w']) {
         move_x += sin(dir);
         move_z += -cos(dir);
@@ -94,13 +114,78 @@ void atualiza_movimento() {
         move_x += cos(dir);
         move_z += sin(dir);
     }
-    // Normaliza para não andar mais rápido na diagonal
+    
+    // Rotação com R e T
+    if (keyStates['r'] || keyStates['R']) {
+        dir += SENSIBILIDADE; // Rotaciona para a direita
+    }
+    if (keyStates['t'] || keyStates['T']) {
+        dir -= SENSIBILIDADE; // Rotaciona para a esquerda
+    }
+    
+    // Normaliza e aplica movimento com detecção de colisão
     float len = sqrt(move_x * move_x + move_z * move_z);
     if (len > 0.01f) {
         move_x /= len;
         move_z /= len;
-        pos_x += move_x * VELOCIDADE * 0.2f;
-        pos_z += move_z * VELOCIDADE * 0.2f;
+        
+        // Calcular nova posição
+        float nova_pos_x = pos_x + move_x * VELOCIDADE * 0.3f;
+        float nova_pos_z = pos_z + move_z * VELOCIDADE * 0.3f;
+        
+        // Detecção de colisão com paredes da igreja (considerando espessura)
+        bool colisao = false;
+        
+        // Se estiver na área da igreja, verificar colisão com paredes
+        if (nova_pos_z >= -COMPRIMENTO - 2.0f && nova_pos_z <= 2.0f &&
+            nova_pos_x >= -LARGURA/2 - 5.0f && nova_pos_x <= LARGURA/2 + 5.0f) {
+            
+            // Verificar colisão com parede esquerda (incluindo espessura)
+            if (nova_pos_x <= -LARGURA/2 + 1.5f) {
+                colisao = true;
+            }
+            // Verificar colisão com parede direita (incluindo espessura)
+            else if (nova_pos_x >= LARGURA/2 - 1.5f) {
+                colisao = true;
+            }
+            // Verificar colisão com parede traseira (incluindo espessura)
+            else if (nova_pos_z <= -COMPRIMENTO + 1.5f) {
+                colisao = true;
+            }
+            // Verificar colisão com parede frontal (exceto entrada)
+            else if (nova_pos_z >= -0.5f) {
+                // Permitir entrada apenas na área da porta
+                if (nova_pos_x < -LARGURA_ESCADA/2 || nova_pos_x > LARGURA_ESCADA/2) {
+                    colisao = true;
+                }
+            }
+        }
+        
+        // Aplicar movimento apenas se não houver colisão
+        if (!colisao) {
+            pos_x = nova_pos_x;
+            pos_z = nova_pos_z;
+        }
+        
+        // Ajuste simples de altura baseado na escada e plataforma
+        if (pos_z > 0 && pos_z <= PROFUNDIDADE_ESCADA && 
+            pos_x >= -LARGURA_ESCADA/2 && pos_x <= LARGURA_ESCADA/2) {
+            // Na escada - altura varia com a posição Z
+            float altura_escada = (pos_z / PROFUNDIDADE_ESCADA) * ALTURA_PLATAFORMA;
+            pos_y = 1.7f + altura_escada;
+        } else if (pos_x >= -LARGURA/2 && pos_x <= LARGURA/2 &&
+                   pos_z >= -COMPRIMENTO && pos_z <= 0.0f) {
+            // Dentro da igreja na plataforma
+            pos_y = 1.7f + ALTURA_PLATAFORMA;
+        } else if (pos_x >= -LARGURA/2 - 5.0f && pos_x <= LARGURA/2 + 5.0f &&
+                   pos_z >= -COMPRIMENTO - 5.0f && pos_z <= 5.0f) {
+            // Na área da plataforma da igreja
+            pos_y = 1.7f + ALTURA_PLATAFORMA;
+        } else {
+            // No chão normal
+            pos_y = 1.7f;
+        }
     }
+    
     glutPostRedisplay();
 }

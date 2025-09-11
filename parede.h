@@ -4,5 +4,6 @@
 #include <GL/glut.h>
 
 void desenha_parede();
+void desenha_plataforma();
 
 #endif
