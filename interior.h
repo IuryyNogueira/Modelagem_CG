@@ -4,13 +4,12 @@
 #include <GL/glut.h>
 
 void desenha_altar();
+void desenha_cruz_grande();
+void desenha_caminho_verde();
+void desenha_banco_individual(float x, float z, float rotacao);
 void desenha_bancos();
-void desenha_pulpito();
-void desenha_colunas();
-void desenha_pia_batismal();
-void desenha_confessionarios();
-void desenha_decoracoes();
-void desenha_piso();
+void desenha_arranjo_flores(float x, float z);
+void desenha_arranjos_flores();
 void desenha_interior();
 
 #endif

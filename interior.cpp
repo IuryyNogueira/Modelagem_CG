@@ -1,8 +1,218 @@
 #include "interior.h"
 #include "constantes.h"
 #include <cmath>
+#include <GL/glut.h>
 
-// void desenha_altar() {
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+void desenha_altar() {
+    float base_y = ALTURA_PLATAFORMA;
+    
+    // Altar retangular branco no final da igreja (posicionado corretamente)
+    glColor3f(0.95f, 0.95f, 0.95f); // Branco do altar
+    glPushMatrix();
+    glTranslatef(0.0f, base_y + 0.4f, -Z_INTERNO/2 + 3.0f); // Próximo à parede traseira
+    glScalef(6.0f, 0.8f, 2.0f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Base do altar um pouco mais baixa
+    glColor3f(0.9f, 0.9f, 0.9f);
+    glPushMatrix();
+    glTranslatef(0.0f, base_y + 0.15f, -Z_INTERNO/2 + 3.0f);
+    glScalef(8.0f, 0.3f, 2.5f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+}
+
+void desenha_cruz_grande() {
+    float base_y = ALTURA_PLATAFORMA;
+    
+    // Cruz grande na parede do fundo (posicionada corretamente)
+    glColor3f(0.4f, 0.3f, 0.2f); // Madeira escura da cruz
+    glPushMatrix();
+    glTranslatef(0.0f, base_y + 4.0f, -Z_INTERNO/2 + 0.5f); // Bem próxima à parede traseira
+    
+    // Haste vertical da cruz
+    glPushMatrix();
+    glScalef(0.3f, 4.0f, 0.2f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Haste horizontal da cruz
+    glPushMatrix();
+    glTranslatef(0.0f, 0.8f, 0.0f);
+    glScalef(2.2f, 0.3f, 0.2f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    glPopMatrix();
+}
+
+void desenha_caminho_verde() {
+    float base_y = ALTURA_PLATAFORMA;
+    
+    // Caminho verde central (da entrada até próximo ao altar)
+    glColor3f(0.2f, 0.6f, 0.2f); // Verde do caminho
+    glBegin(GL_QUADS);
+        glNormal3f(0.0f, 1.0f, 0.0f);
+        glVertex3f(-1.2f, base_y + 0.02f, Z_INTERNO/2 - 1.0f); // Começa próximo à entrada
+        glVertex3f(1.2f, base_y + 0.02f, Z_INTERNO/2 - 1.0f);
+        glVertex3f(1.2f, base_y + 0.02f, -Z_INTERNO/2 + 5.0f); // Termina antes do altar
+        glVertex3f(-1.2f, base_y + 0.02f, -Z_INTERNO/2 + 5.0f);
+    glEnd();
+}
+
+void desenha_banco_individual(float x, float z, float rotacao) {
+    float base_y = ALTURA_PLATAFORMA;
+    
+    glPushMatrix();
+    glTranslatef(x, base_y, z);
+    glRotatef(rotacao, 0.0f, 1.0f, 0.0f); // Rotação anti-horária
+    
+    // Cor madeira dos bancos
+    glColor3f(0.6f, 0.4f, 0.2f);
+    
+    // Assento do banco - menor
+    glPushMatrix();
+    glTranslatef(0.0f, 0.25f, 0.0f);
+    glScalef(2.5f, 0.1f, 0.8f); // Reduzido significativamente
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Encosto do banco - menor
+    glPushMatrix();
+    glTranslatef(0.0f, 0.6f, 0.3f); // Corrigido: encosto atrás do assento
+    glScalef(2.5f, 0.7f, 0.1f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Pés do banco (4 pés) - menores
+    for(int i = 0; i < 4; i++) {
+        float px = (i % 2 == 0) ? -1.1f : 1.1f;
+        float pz = (i < 2) ? 0.3f : -0.3f;
+        
+        glPushMatrix();
+        glTranslatef(px, 0.125f, pz);
+        glScalef(0.1f, 0.25f, 0.1f);
+        glutSolidCube(1.0f);
+        glPopMatrix();
+    }
+    
+    glPopMatrix();
+}
+
+void desenha_arranjo_flores(float x, float z) {
+    float base_y = ALTURA_PLATAFORMA;
+    
+    glPushMatrix();
+    glTranslatef(x, base_y, z);
+    
+    // Vaso/base do arranjo (cor bege/terracota)
+    glColor3f(0.8f, 0.7f, 0.6f);
+    glPushMatrix();
+    glTranslatef(0.0f, 0.3f, 0.0f);
+    glScalef(0.6f, 0.6f, 0.6f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Flores brancas (várias esferas pequenas)
+    glColor3f(0.95f, 0.95f, 0.95f); // Branco das flores
+    
+    // Arranjo de flores em formato arredondado
+    for(int i = 0; i < 8; i++) {
+        float angulo = i * 45.0f * M_PI / 180.0f;
+        float raio = 0.3f;
+        
+        glPushMatrix();
+        glTranslatef(raio * cos(angulo), 0.7f + (i % 2) * 0.1f, raio * sin(angulo));
+        glScalef(0.15f, 0.15f, 0.15f);
+        glutSolidSphere(1.0f, 8, 8);
+        glPopMatrix();
+    }
+    
+    // Flores centrais
+    for(int i = 0; i < 3; i++) {
+        glPushMatrix();
+        glTranslatef((i-1) * 0.15f, 0.8f + i * 0.05f, (i-1) * 0.1f);
+        glScalef(0.12f, 0.12f, 0.12f);
+        glutSolidSphere(1.0f, 8, 8);
+        glPopMatrix();
+    }
+    
+    // Algumas folhas verdes (opcionais)
+    glColor3f(0.2f, 0.5f, 0.2f);
+    for(int i = 0; i < 4; i++) {
+        float angulo = i * 90.0f * M_PI / 180.0f;
+        glPushMatrix();
+        glTranslatef(0.4f * cos(angulo), 0.5f, 0.4f * sin(angulo));
+        glScalef(0.08f, 0.08f, 0.08f);
+        glutSolidSphere(1.0f, 6, 6);
+        glPopMatrix();
+    }
+    
+    glPopMatrix();
+}
+
+void desenha_arranjos_flores() {
+    // Arranjos ao lado do altar
+    desenha_arranjo_flores(-3.0f, -Z_INTERNO/2 + 4.0f); // Lado esquerdo do altar
+    desenha_arranjo_flores(3.0f, -Z_INTERNO/2 + 4.0f);  // Lado direito do altar
+    
+    // Arranjos nas laterais do caminho verde (próximo à entrada)
+    desenha_arranjo_flores(-2.5f, Z_INTERNO/2 - 2.0f);  // Lado esquerdo da entrada
+    desenha_arranjo_flores(2.5f, Z_INTERNO/2 - 2.0f);   // Lado direito da entrada
+    
+    // Arranjos decorativos ao longo do caminho
+    desenha_arranjo_flores(-2.5f, 0.0f);  // Meio do caminho, lado esquerdo
+    desenha_arranjo_flores(2.5f, 0.0f);   // Meio do caminho, lado direito
+    
+    // Arranjos nas laterais próximo ao altar
+    desenha_arranjo_flores(-5.0f, -Z_INTERNO/2 + 8.0f);
+    desenha_arranjo_flores(5.0f, -Z_INTERNO/2 + 8.0f);
+}
+
+void desenha_bancos() {
+    // Bancos inclinados no sentido anti-horário (posicionados corretamente)
+    // Duas fileiras de cada lado do caminho verde
+    
+    float rotacao = -8.0f; // Inclinação anti-horária
+    
+    // Lado esquerdo - primeira fileira (mais próxima do caminho)
+    for(int i = 0; i < 5; i++) {
+        float z = Z_INTERNO/2 - 4.0f - i * 3.0f; // Espaçamento de 3m entre bancos
+        desenha_banco_individual(-4.0f, z, rotacao);
+    }
+    
+    // Lado esquerdo - segunda fileira (mais próxima da parede)
+    for(int i = 0; i < 5; i++) {
+        float z = Z_INTERNO/2 - 4.0f - i * 3.0f;
+        desenha_banco_individual(-8.0f, z, rotacao);
+    }
+    
+    // Lado direito - primeira fileira (mais próxima do caminho)
+    for(int i = 0; i < 5; i++) {
+        float z = Z_INTERNO/2 - 4.0f - i * 3.0f;
+        desenha_banco_individual(4.0f, z, -rotacao); // Rotação oposta
+    }
+    
+    // Lado direito - segunda fileira (mais próxima da parede)
+    for(int i = 0; i < 5; i++) {
+        float z = Z_INTERNO/2 - 4.0f - i * 3.0f;
+        desenha_banco_individual(8.0f, z, -rotacao); // Rotação oposta
+    }
+}
+
+void desenha_interior() {
+    // Removido desenha_piso() - usando o piso original
+    desenha_caminho_verde();
+    desenha_altar();
+    desenha_cruz_grande();
+    desenha_bancos();
+    desenha_arranjos_flores(); // Adicionar arranjos de flores brancas
+}
 //     // Altar no fundo da igreja (como na imagem real)
 //     float largura_altar = 10.0f;
 //     float altura_altar = 1.5f;

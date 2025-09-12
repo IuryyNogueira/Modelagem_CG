@@ -133,31 +133,74 @@ void atualiza_movimento() {
         float nova_pos_x = pos_x + move_x * VELOCIDADE * 0.3f;
         float nova_pos_z = pos_z + move_z * VELOCIDADE * 0.3f;
         
-        // Detecção de colisão com paredes da igreja (considerando espessura)
+        // Detecção de colisão com as paredes baseada nos blocos reais
         bool colisao = false;
+        float margem = 0.5f; // Margem para não encostar diretamente na parede
         
-        // Se estiver na área da igreja, verificar colisão com paredes
-        if (nova_pos_z >= -Z_TERRENO - 2.0f && nova_pos_z <= 2.0f &&
-            nova_pos_x >= -X_TERRENO - 5.0f && nova_pos_x <= X_TERRENO + 5.0f) {
-            
-            // Verificar colisão com parede esquerda (incluindo espessura)
-            if (nova_pos_x <= -X_TERRENO + 1.5f) {
+        // Baseado nas paredes definidas em parede.cpp:
+        
+        // Parede esquerda: posX = -X_INTERNO/2, largura = ESPESSURA_PAREDE
+        // Limites: X de (-X_INTERNO/2 - ESPESSURA_PAREDE/2) até (-X_INTERNO/2 + ESPESSURA_PAREDE/2)
+        float parede_esq_min = -X_INTERNO/2 - ESPESSURA_PAREDE/2 - margem;
+        float parede_esq_max = -X_INTERNO/2 + ESPESSURA_PAREDE/2 + margem;
+        
+        // Parede direita: posX = X_INTERNO/2, largura = ESPESSURA_PAREDE  
+        float parede_dir_min = X_INTERNO/2 - ESPESSURA_PAREDE/2 - margem;
+        float parede_dir_max = X_INTERNO/2 + ESPESSURA_PAREDE/2 + margem;
+        
+        // Parede traseira: posZ = -Z_INTERNO/2, profundidade = ESPESSURA_PAREDE
+        float parede_tras_min = -Z_INTERNO/2 - ESPESSURA_PAREDE/2 - margem;
+        float parede_tras_max = -Z_INTERNO/2 + ESPESSURA_PAREDE/2 + margem;
+        
+        // Paredes frontais (duas laterais + central pequena)
+        // Parede frontal esquerda: posX = -X_INTERNO/2 + 12.0f/2, largura = 12.0f
+        float parede_front_esq_min = (-X_INTERNO/2 + 12.0f/2) - 12.0f/2 - margem;
+        float parede_front_esq_max = (-X_INTERNO/2 + 12.0f/2) + 12.0f/2 + margem;
+        
+        // Parede frontal direita: posX = X_INTERNO/2 - 12.0f/2, largura = 12.0f
+        float parede_front_dir_min = (X_INTERNO/2 - 12.0f/2) - 12.0f/2 - margem;
+        float parede_front_dir_max = (X_INTERNO/2 - 12.0f/2) + 12.0f/2 + margem;
+        
+        // Parede frontal central: posX = 0.0f, largura = ESPESSURA_PAREDE
+        float parede_front_cent_min = 0.0f - ESPESSURA_PAREDE/2 - margem;
+        float parede_front_cent_max = 0.0f + ESPESSURA_PAREDE/2 + margem;
+        
+        // Posição Z das paredes frontais
+        float parede_front_z = Z_INTERNO/2 - 0.075f;
+        float parede_front_z_min = parede_front_z - ESPESSURA_PAREDE/2 - margem;
+        float parede_front_z_max = parede_front_z + ESPESSURA_PAREDE/2 + margem;
+        
+        // Verificar colisão com parede esquerda
+        if (nova_pos_x >= parede_esq_min && nova_pos_x <= parede_esq_max &&
+            nova_pos_z >= -Z_INTERNO/2 && nova_pos_z <= Z_INTERNO/2) {
+            colisao = true;
+        }
+        
+        // Verificar colisão com parede direita
+        if (nova_pos_x >= parede_dir_min && nova_pos_x <= parede_dir_max &&
+            nova_pos_z >= -Z_INTERNO/2 && nova_pos_z <= Z_INTERNO/2) {
+            colisao = true;
+        }
+        
+        // Verificar colisão com parede traseira
+        if (nova_pos_z >= parede_tras_min && nova_pos_z <= parede_tras_max &&
+            nova_pos_x >= -X_INTERNO/2 && nova_pos_x <= X_INTERNO/2) {
+            colisao = true;
+        }
+        
+        // Verificar colisão com paredes frontais
+        if (nova_pos_z >= parede_front_z_min && nova_pos_z <= parede_front_z_max) {
+            // Parede frontal esquerda
+            if (nova_pos_x >= parede_front_esq_min && nova_pos_x <= parede_front_esq_max) {
                 colisao = true;
             }
-            // Verificar colisão com parede direita (incluindo espessura)
-            else if (nova_pos_x >= X_TERRENO - 1.5f) {
+            // Parede frontal direita
+            if (nova_pos_x >= parede_front_dir_min && nova_pos_x <= parede_front_dir_max) {
                 colisao = true;
             }
-            // Verificar colisão com parede traseira (incluindo espessura)
-            else if (nova_pos_z <= -Z_TERRENO + 1.5f) {
+            // Parede frontal central (pequena)
+            if (nova_pos_x >= parede_front_cent_min && nova_pos_x <= parede_front_cent_max) {
                 colisao = true;
-            }
-            // Verificar colisão com parede frontal (exceto entrada)
-            else if (nova_pos_z >= -0.5f) {
-                // Permitir entrada apenas na área da porta
-                if (nova_pos_x < -X_ESCADA || nova_pos_x > X_ESCADA) {
-                    colisao = true;
-                }
             }
         }
         
@@ -167,21 +210,28 @@ void atualiza_movimento() {
             pos_z = nova_pos_z;
         }
         
-        // Ajuste simples de altura baseado na escada e plataforma
+        // Ajuste de altura baseado na posição - ordem corrigida
+        // Primeiro verifica se está na escada
         if (pos_z > 0 && pos_z <= Z_ESCADA && 
-            pos_x >= -X_ESCADA && pos_x <= X_ESCADA) {
+            pos_x >= -X_ESCADA/2 && pos_x <= X_ESCADA/2) {
             // Na escada - altura varia com a posição Z
             float altura_escada = (pos_z / Z_ESCADA) * ALTURA_PLATAFORMA;
-            pos_y = 1.7f + altura_escada;
-        } else if (pos_x >= -X_TERRENO && pos_x <= X_TERRENO &&
-                   pos_z >= -Z_TERRENO && pos_z <= 0.0f) {
-            // Dentro da igreja na plataforma
-            pos_y = 1.7f + ALTURA_PLATAFORMA;
-        } else if (pos_x >= -X_TERRENO - 5.0f && pos_x <= X_TERRENO + 5.0f &&
-                   pos_z >= -Z_TERRENO - 5.0f && pos_z <= 5.0f) {
-            // Na área da plataforma da igreja
-            pos_y = 1.7f + ALTURA_PLATAFORMA;
-        } else {
+            pos_y = 1.7f + altura_escada + 0.1f; // Offset para ficar sobre os degraus
+        }
+        // Depois verifica se está dentro do interior da igreja
+        else if (pos_x > -X_INTERNO/2 + 0.5f && pos_x < X_INTERNO/2 - 0.5f &&
+                 pos_z > -Z_INTERNO/2 + 0.5f && pos_z < Z_INTERNO/2 - 0.5f) {
+            // Dentro da igreja - altura da plataforma + offset
+            pos_y = 1.7f + ALTURA_PLATAFORMA + 0.15f;
+        }
+        // Depois verifica se está na plataforma externa
+        else if (pos_x >= -X_PLATAFORMA_IGREJA/2 && pos_x <= X_PLATAFORMA_IGREJA/2 &&
+                 pos_z >= -Z_PLATAFORMA_IGREJA/2 && pos_z <= Z_PLATAFORMA_IGREJA/2) {
+            // Na plataforma externa da igreja
+            pos_y = 1.7f + ALTURA_PLATAFORMA + 0.1f;
+        } 
+        // Por último, chão normal
+        else {
             // No chão normal
             pos_y = 1.7f;
         }
