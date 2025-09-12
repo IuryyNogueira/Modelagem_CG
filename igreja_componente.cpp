@@ -15,10 +15,10 @@ void desenha_igreja() {
     // Desenhar as paredes (já ajustadas para ficarem na altura da plataforma)
     desenha_parede();
     
-    // // Desenhar o interior da igreja
-    // desenha_interior();
+    // Desenhar o interior da igreja
+    desenha_interior();
     
-    // // Desenhar o telhado
+    // Desenhar o telhado
     desenha_telhas();
 
     // Desenhar escada na frente da igreja (direcionada à porta)
