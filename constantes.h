@@ -61,5 +61,6 @@ extern const float SENS_MOUSE;
 extern bool keyStates[256];
 
 void desenha_bloco(float x, float y, float z, float posX = 0.0f, float posY = 0.0f, float posZ = 0.0f);
+void desenha_prisma_triangular(float largura, float altura, float profundidade, float posX = 0.0f, float posY = 0.0f, float posZ = 0.0f);
 
 #endif

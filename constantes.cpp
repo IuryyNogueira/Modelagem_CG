@@ -114,3 +114,98 @@ void desenha_bloco(float largura, float altura, float profundidade,
     // a ser desenhado comece do estado original.
     glPopMatrix();
 }
+
+// Lembrete da preferência do usuário: incluir a implementação completa do método.
+
+/**
+ * @brief Desenha um prisma triangular (como a empena de um telhado) em uma posição específica.
+ * @param largura A largura da base do triângulo (eixo X).
+ * @param altura A altura do triângulo, do centro da base ao topo (eixo Y).
+ * @param profundidade A profundidade/espessura do prisma (eixo Z).
+ * @param posX A coordenada X para a translação do prisma. Padrão é 0.
+ * @param posY A coordenada Y para a translação do prisma. Padrão é 0.
+ * @param posZ A coordenada Z para a translação do prisma. Padrão é 0.
+ */
+void desenha_prisma_triangular(float largura, float altura, float profundidade,
+                               float posX, float posY, float posZ) {
+
+    glPushMatrix();
+    glTranslatef(posX, posY, posZ);
+
+    // Definimos os 6 vértices únicos do prisma.
+    // A base fica em Y=0.
+    //      2
+    //     / \
+    //    /   \
+    //   0-----1  (Face da frente, com Z positivo)
+    //
+    //      5
+    //     / \
+    //    /   \
+    //   3-----4  (Face de trás, com Z negativo)
+
+    float x = largura / 2.0f;
+    float y = altura;
+    float z = profundidade / 2.0f;
+
+    GLfloat vertices[6][3] = {
+        {-x, 0,  z}, // 0: inferior-esquerda-frente
+        { x, 0,  z}, // 1: inferior-direita-frente
+        { 0, y,  z}, // 2: superior-centro-frente
+        {-x, 0, -z}, // 3: inferior-esquerda-trás
+        { x, 0, -z}, // 4: inferior-direita-trás
+        { 0, y, -z}  // 5: superior-centro-trás
+    };
+    
+    // Normais para as 5 faces. As normais das rampas são calculadas
+    // para serem perpendiculares às faces inclinadas.
+    GLfloat normais[5][3] = {
+        {0.0, 0.0, 1.0},        // 0: Frente
+        {0.0, 0.0, -1.0},       // 1: Trás
+        {0.0, -1.0, 0.0},       // 2: Base
+        {-altura, x, 0.0},      // 3: Rampa esquerda (vetor (-y, x))
+        { altura, x, 0.0}       // 4: Rampa direita (vetor (y, x))
+    };
+
+
+    // --- Desenha as faces triangulares ---
+    glBegin(GL_TRIANGLES);
+        // Face da Frente
+        glNormal3fv(normais[0]);
+        glVertex3fv(vertices[0]);
+        glVertex3fv(vertices[1]);
+        glVertex3fv(vertices[2]);
+
+        // Face de Trás
+        glNormal3fv(normais[1]);
+        glVertex3fv(vertices[4]); // Ordem anti-horária vista de trás
+        glVertex3fv(vertices[3]);
+        glVertex3fv(vertices[5]);
+    glEnd();
+
+    // --- Desenha as faces retangulares (Quads) ---
+    glBegin(GL_QUADS);
+        // Base
+        glNormal3fv(normais[2]);
+        glVertex3fv(vertices[1]); // Ordem anti-horária vista de baixo
+        glVertex3fv(vertices[0]);
+        glVertex3fv(vertices[3]);
+        glVertex3fv(vertices[4]);
+
+        // Rampa Esquerda
+        glNormal3fv(normais[3]);
+        glVertex3fv(vertices[0]);
+        glVertex3fv(vertices[2]);
+        glVertex3fv(vertices[5]);
+        glVertex3fv(vertices[3]);
+
+        // Rampa Direita
+        glNormal3fv(normais[4]);
+        glVertex3fv(vertices[2]);
+        glVertex3fv(vertices[1]);
+        glVertex3fv(vertices[4]);
+        glVertex3fv(vertices[5]);
+    glEnd();
+
+    glPopMatrix();
+}

@@ -19,16 +19,16 @@ void desenha_igreja() {
     // desenha_interior();
     
     // // Desenhar o telhado
-    // desenha_telhas();
+    desenha_telhas();
 
     // Desenhar escada na frente da igreja (direcionada à porta)
     // glPushMatrix();
     // glTranslatef(0.0f, 0.0f, Z_ESCADA); // Posicionar a escada na frente da igreja
-    // desenha_escada();
+    desenha_escada();
     // glPopMatrix();
 
     // // Desenhar cruz no topo
-    // desenha_arco();
+    desenha_arco();
 
     glPopMatrix();
 }
