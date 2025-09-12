@@ -17,7 +17,7 @@ const float PE_DIREITO_IGREJA = 4.5f;// Altura até o topo da parede (pé direit
 const float X_PLATAFORMA_IGREJA = 36.0f;   // Largura da plataforma (um pouco maior que a igreja)
 const float Z_PLATAFORMA_IGREJA = 27.0f; // Profundidade da plataforma (um pouco maior que a igreja)
 
-const float INCLINACAO_TELHADO = 0.3f; // 30% de inclinação
+const float INCLINACAO_TELHADO = 0.15f; // 30% de inclinação
 const float ALTURA_TELHADO = X_INTERNO * INCLINACAO_TELHADO;    // Altura adicional do telhado
 
 const float X_ESCADA = 11.0f;   // Largura da escada

@@ -39,7 +39,7 @@ void desenha_telhas() {
     
     // Posição Y base das empenas (no topo das paredes)
     float pos_y_empena = base_y + PE_DIREITO_IGREJA;
-    
+    glColor3f(.58f, 0.6f, 0.57f);
     // Empena frontal - usando desenha_prisma_triangular
     desenha_prisma_triangular(largura_empena, altura_empena, profundidade_empena,
                               0.0f, pos_y_empena, Z_INTERNO/2 - ESPESSURA_PAREDE/2);

@@ -18,7 +18,7 @@ void desenha_parede() {
     desenha_bloco(0.05f, 2.1f, 1.2f, -X_INTERNO/2 + 12.0f - 0.025f, ALTURA_PLATAFORMA, Z_INTERNO/2 - .75); // Porta esquerda (encostada na parede esquerda)
     desenha_bloco(0.05f, 2.1f, 1.2f, X_INTERNO/2 - 12.0f + 0.025f, ALTURA_PLATAFORMA, Z_INTERNO/2 - .75); // Porta direita (encostada na parede direita)
 
-    glColor3f(0.95f, 0.95f, 0.9f);
+    glColor3f(1.0f, 0.7f, 0.5f);
     desenha_bloco(8.3f, PE_DIREITO_IGREJA, ESPESSURA_PAREDE, 0.0f, ALTURA_PLATAFORMA, Z_INTERNO/2 - 1.4f); // Parede frontal central (com porta)
     desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA - 2.1f, 1.2f, -X_INTERNO/2 + 12.0f - .075f, ALTURA_PLATAFORMA + 2.1, Z_INTERNO/2 - .75f); // Parede frontal entre porta e parede esquerda
     desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA - 2.1f, 1.2f, X_INTERNO/2 - 12.0f + .075f, ALTURA_PLATAFORMA + 2.1, Z_INTERNO/2 - .75f); // Parede frontal entre porta e parede direita
