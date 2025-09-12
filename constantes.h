@@ -60,6 +60,11 @@ extern const float SENS_MOUSE;
 // --- Flags para teclas pressionadas ---
 extern bool keyStates[256];
 
+// --- Controle da porta ---
+extern bool porta_aberta;
+extern float angulo_porta;
+extern bool proximo_da_porta;
+
 void desenha_bloco(float x, float y, float z, float posX = 0.0f, float posY = 0.0f, float posZ = 0.0f);
 void desenha_prisma_triangular(float largura, float altura, float profundidade, float posX = 0.0f, float posY = 0.0f, float posZ = 0.0f);
 

@@ -43,7 +43,64 @@ void desenha_rampas_laterais() {
     }
 }
 
+void desenha_blocos_grama() {
+    // Blocos de grama laterais dos lados da escada, embaixo da altura do arco
+    glColor3f(0.2f, 0.6f, 0.2f); // Verde da grama
+    
+    float altura_grama = 0.3f; // Altura dos blocos de grama
+    
+    // Posição dos blocos - dos lados da escada
+    float largura_grama = 6.0f;
+    float profundidade_grama = 6.0f;
+    float pos_z_grama = Z_INTERNO/2 + 4.0f; // Ligeiramente à frente da escada
+    
+    // Bloco de grama esquerdo
+    desenha_bloco(largura_grama, altura_grama*2, profundidade_grama, 
+                  -X_ESCADA/2 - largura_grama/2 - 1.0f, altura_grama/2, pos_z_grama);
+    
+    // Bloco de grama direito
+    desenha_bloco(largura_grama, altura_grama, profundidade_grama, 
+                  X_ESCADA/2 + largura_grama/2 + 1.0f, altura_grama/2, pos_z_grama);
+}
 
+void desenha_corrimao_escada() {
+    // Corrimãos laterais da escada principal
+    glColor3f(0.4f, 0.3f, 0.2f); // Cor de madeira escura
+    
+    float altura_corrimao = 1.0f;
+    float espessura_corrimao = 0.1f;
+    
+    // Postes verticais nas laterais da escada
+    for (int i = 0; i < NUM_DEGRAUS; ++i) {
+        float z_degrau = Z_INTERNO/2 + Z_ESCADA - (i * PROFUNDIDADE_DEGRAU) + 0.3f;
+        float altura_degrau = i * ALTURA_DEGRAU;
+        
+        // Poste vertical na lateral esquerda da escada
+        desenha_bloco(espessura_corrimao, altura_corrimao, espessura_corrimao,
+                      -X_ESCADA/2 - 0.2f, altura_degrau + altura_corrimao/2, z_degrau);
+        
+        // Poste vertical na lateral direita da escada
+        desenha_bloco(espessura_corrimao, altura_corrimao, espessura_corrimao,
+                      X_ESCADA/2 + 0.2f, altura_degrau + altura_corrimao/2, z_degrau);
+    }
+    
+    // Corrimão horizontal inclinado - seguindo a inclinação da escada
+    int num_segmentos_horizontal = 10;
+    float comprimento_segmento = Z_ESCADA / num_segmentos_horizontal;
+    
+    for (int i = 0; i < num_segmentos_horizontal; ++i) {
+        float z_segmento = Z_INTERNO/2 + Z_ESCADA - (i * comprimento_segmento) + 0.3f;
+        float altura_segmento = (i * ALTURA_DEGRAU * NUM_DEGRAUS / num_segmentos_horizontal) + altura_corrimao;
+        
+        // Corrimão horizontal esquerdo inclinado
+        desenha_bloco(espessura_corrimao, espessura_corrimao, comprimento_segmento,
+                      -X_ESCADA/2 - 0.2f, altura_segmento, z_segmento - comprimento_segmento/2);
+        
+        // Corrimão horizontal direito inclinado
+        desenha_bloco(espessura_corrimao, espessura_corrimao, comprimento_segmento,
+                      X_ESCADA/2 + 0.2f, altura_segmento, z_segmento - comprimento_segmento/2);
+    }
+}
 
 void desenha_escada() {
     // Escada central que vai do chão até a altura da plataforma
@@ -57,9 +114,12 @@ void desenha_escada() {
                       0.0f, i * altura_degrau, Z_INTERNO/2 + Z_ESCADA - (i * PROFUNDIDADE_DEGRAU) + .3f);
     }
     
-    // // Desenhar a base frontal no topo da escada (centro do T)
-    // desenha_base_frontal();
-    
     // Desenhar as rampas laterais partindo da base (braços do T)
     desenha_rampas_laterais();
+    
+    // Desenhar blocos de grama dos lados da escada
+    desenha_blocos_grama();
+    
+    // Desenhar corrimãos da escada e rampas
+    desenha_corrimao_escada();
 }

@@ -1,101 +1,75 @@
 # Guia para Colaboradores - Igreja 3D
 
+## Estrutura do Projeto
+
+### 1. `constantes.h/cpp`
+- Dimensões da igreja baseadas na planta baixa
+- Variáveis de controle da câmera e movimento
+- Configurações de velocidade e sensibilidade
+
+### 2. `parede.h/cpp`
+- 4 paredes da igreja com espessura
+- Plataforma elevada com rampas
+- Nicho decorativo laranja na frente
+- Vão de entrada proporcional
+
+### 3. `telhado.h/cpp`
+- Telhado colonial com inclinação 30%
+- Telhas vermelhas
+- Empenas triangulares
+
+### 4. `escada.h/cpp`
+- Escada central com 6 degraus
+- Base em formato T
+- Rampas laterais para acessibilidade
+
+### 5. `arco.h/cpp`
+- Arco parabólico moderno
+- Cruz no topo
+- Estrutura branca que vai até o chão
+
+### 6. `interior.h/cpp`
+- Altar elevado com parede terracota e cruz
+- Fileiras de bancos de madeira
+- Púlpito lateral direito
+- Piso de concreto claro
+- Decorações douradas
+
+### 7. `controles.h/cpp`
+- Movimento WASD primeira pessoa
+- Rotação com mouse
+- Detecção de colisão
+- Ajuste automático de altura
+
+### 8. `inicializacao.h/cpp`
+- Configuração OpenGL
+- Iluminação natural (sol)
+- Céu azul claro
+- Material e luzes
+
+### 9. Arquivos de Versão
+- `interior_old.cpp` - versão anterior do interior
+- `interior_novo.cpp` - versão alternativa
+
 ## Como Contribuir
 
-Este projeto foi modularizado para facilitar a colaboração entre múltiplos desenvolvedores. Cada componente da igreja está em um arquivo separado.
-
-## Estrutura Modular
-
-### 1. Constantes (`constantes.h/cpp`)
-- Contém todas as medidas principais da igreja
-- Variáveis de controle da câmera
-- **Colaboradores podem**: Ajustar dimensões, adicionar novas constantes
-
-### 2. Paredes (`parede.h/cpp`)
-- Renderiza as 4 paredes da igreja
-- **Colaboradores podem**: 
-  - Adicionar janelas
-  - Adicionar portas
-  - Criar texturas nas paredes
-  - Adicionar detalhes arquitetônicos
-
-### 3. Telhado (`telhado.h/cpp`)
-- Renderiza o telhado em formato triangular
-- **Colaboradores podem**:
-  - Mudar o estilo do telhado
-  - Adicionar chaminé
-  - Criar diferentes materiais de telha
-  - Adicionar calhas
-
-### 4. Escada (`escada.h/cpp`)
-- Renderiza a escada de entrada
-- **Colaboradores podem**:
-  - Mudar o número de degraus
-  - Adicionar corrimão
-  - Mudar o material
-  - Criar escadas curvas
-
-### 5. Arco (`arco.h/cpp`)
-- Renderiza o arco de entrada
-- **Colaboradores podem**:
-  - Mudar o estilo do arco (gótico, românico, etc.)
-  - Adicionar ornamentações
-  - Criar arcos múltiplos
-  - Adicionar colunas
-
-### 6. Controles (`controles.h/cpp`)
-- Gerencia entrada do usuário e visualização
-- **Colaboradores podem**:
-  - Adicionar novos controles
-  - Implementar animações
-  - Adicionar modos de visualização
-  - Implementar câmera automática
-
-### 7. Inicialização (`inicializacao.h/cpp`)
-- Configura OpenGL e iluminação
-- **Colaboradores podem**:
-  - Ajustar iluminação
-  - Adicionar múltiplas luzes
-  - Configurar materiais
-  - Adicionar sombras
-
-## Fluxo de Trabalho Recomendado
-
-1. **Clone o repositório**
-2. **Escolha um módulo** para trabalhar
-3. **Compile e teste** antes de fazer mudanças: `make`
-4. **Faça suas modificações** no módulo específico
-5. **Recompile**: `make rebuild`
-6. **Teste** se o programa ainda funciona corretamente
-7. **Commit e push** suas mudanças
-
-## Convenções de Código
-
-- Use nomes descritivos para funções e variáveis
-- Adicione comentários para código complexo
-- Mantenha a indentação consistente (4 espaços)
-- Teste sempre antes de fazer commit
-
-## Exemplo de Extensão
-
-Para adicionar uma janela na parede frontal:
-
-```cpp
-// Em parede.cpp, na função desenha_parede()
-void desenha_janela_frontal() {
-    glColor3f(0.0f, 0.0f, 0.8f); // Azul para vidro
-    glBegin(GL_QUADS);
-        glVertex3f(-5.0f, 10.0f, 0.1f);
-        glVertex3f( 5.0f, 10.0f, 0.1f);
-        glVertex3f( 5.0f, 15.0f, 0.1f);
-        glVertex3f(-5.0f, 15.0f, 0.1f);
-    glEnd();
-}
-```
+1. Clone o repositório
+2. Escolha um módulo para modificar
+3. Compile: `make`
+4. Teste suas mudanças
+5. Commit e push
 
 ## Compilação
 
-Sempre use o Makefile:
-- `make` - Compila o projeto
-- `make clean` - Remove arquivos compilados
-- `make rebuild` - Limpa e recompila tudo
+```bash
+make          # Compila
+make clean    # Limpa
+make rebuild  # Limpa e recompila
+```
+
+## Convenções
+
+- Funções: `snake_case`
+- Constantes: `UPPER_CASE`
+- Sempre use `glPushMatrix/glPopMatrix`
+- Teste antes de commit

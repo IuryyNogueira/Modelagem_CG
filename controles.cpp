@@ -3,6 +3,45 @@
 #include "igreja.h"
 #include <cmath>
 #include <iostream>
+#include <string>
+
+// Função para desenhar texto na tela
+void desenha_texto(float x, float y, const std::string& texto) {
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, glutGet(GLUT_WINDOW_WIDTH), 0, glutGet(GLUT_WINDOW_HEIGHT), -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    glDisable(GL_DEPTH_TEST);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glRasterPos2f(x, y);
+    
+    for (char c : texto) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, c);
+    }
+    
+    glEnable(GL_DEPTH_TEST);
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+}
+
+// Função para desenhar interface
+void desenha_interface() {
+    if (proximo_da_porta) {
+        std::string estado = porta_aberta ? "ABERTAS" : "FECHADAS";
+        std::string acao = porta_aberta ? "fechar" : "abrir";
+        desenha_texto(10, glutGet(GLUT_WINDOW_HEIGHT) - 30, "Pressione E para " + acao + " as portas");
+        desenha_texto(10, glutGet(GLUT_WINDOW_HEIGHT) - 50, "Portas laterais: " + estado);
+    }
+    
+    // Controles sempre visíveis
+    desenha_texto(10, 50, "Controles: WASD - Movimento | Mouse - Olhar | R/T - Rotar | ESC - Sair");
+}
 
 // Função para desenhar o chão
 void desenha_chao() {
@@ -52,6 +91,7 @@ void display() {
 
     desenha_chao();
     desenha_igreja();
+    desenha_interface();
     glutSwapBuffers();
 }
 
@@ -66,6 +106,12 @@ void redimensiona(int w, int h) {
 
 void teclado(unsigned char key, int x, int y) {
     keyStates[key] = true;
+    
+    // Controle da porta com tecla E
+    if ((key == 'e' || key == 'E') && proximo_da_porta) {
+        porta_aberta = !porta_aberta;
+    }
+    
     if (key == 27) // ESC
         exit(0);
 }
@@ -95,6 +141,25 @@ void atualiza_camera_mouse(int x, int y) {
 }
 
 void atualiza_movimento() {
+    // Animação da porta
+    if (porta_aberta && angulo_porta < 90.0f) {
+        angulo_porta += 2.0f; // Velocidade de abertura
+        if (angulo_porta > 90.0f) angulo_porta = 90.0f;
+    } else if (!porta_aberta && angulo_porta > 0.0f) {
+        angulo_porta -= 2.0f; // Velocidade de fechamento
+        if (angulo_porta < 0.0f) angulo_porta = 0.0f;
+    }
+    
+    // Verificar proximidade das portas laterais (centro dos buracos reais)
+    float pos_porta_esq_x = (-X_INTERNO/2 + 12.0f + 0.0f) / 2.0f;  // Centro do buraco esquerdo
+    float pos_porta_dir_x = (0.0f + X_INTERNO/2 - 12.0f) / 2.0f;   // Centro do buraco direito
+    float pos_porta_z = Z_INTERNO/2 + 0.1f;                        // Posição Z correta das portas (mais à frente)
+    
+    float dist_porta_esq = sqrt(pow(pos_x - pos_porta_esq_x, 2) + pow(pos_z - pos_porta_z, 2));
+    float dist_porta_dir = sqrt(pow(pos_x - pos_porta_dir_x, 2) + pow(pos_z - pos_porta_z, 2));
+    
+    proximo_da_porta = (dist_porta_esq < 3.0f || dist_porta_dir < 3.0f);
+    
     float move_x = 0.0f, move_z = 0.0f;
     
     // Movimento com WASD
@@ -202,6 +267,88 @@ void atualiza_movimento() {
             if (nova_pos_x >= parede_front_cent_min && nova_pos_x <= parede_front_cent_max) {
                 colisao = true;
             }
+        }
+        
+        // Verificar colisão com portas laterais (só se estiverem fechadas)
+        if (angulo_porta < 45.0f) { // Portas consideradas fechadas se ângulo < 45°
+            float porta_z = Z_INTERNO/2 + 0.1f; // Posição Z correta das portas (mais à frente)
+            float porta_z_min = porta_z - 0.6f - margem;
+            float porta_z_max = porta_z + 0.6f + margem;
+            
+            // Porta esquerda (centro do buraco real)
+            float porta_esq_x = (-X_INTERNO/2 + 12.0f + 0.0f) / 2.0f;
+            float porta_esq_x_min = porta_esq_x - 0.6f - margem;
+            float porta_esq_x_max = porta_esq_x + 0.6f + margem;
+            
+            if (nova_pos_z >= porta_z_min && nova_pos_z <= porta_z_max &&
+                nova_pos_x >= porta_esq_x_min && nova_pos_x <= porta_esq_x_max) {
+                colisao = true;
+            }
+            
+            // Porta direita (centro do buraco real)
+            float porta_dir_x = (0.0f + X_INTERNO/2 - 12.0f) / 2.0f;
+            float porta_dir_x_min = porta_dir_x - 0.6f - margem;
+            float porta_dir_x_max = porta_dir_x + 0.6f + margem;
+            
+            if (nova_pos_z >= porta_z_min && nova_pos_z <= porta_z_max &&
+                nova_pos_x >= porta_dir_x_min && nova_pos_x <= porta_dir_x_max) {
+                colisao = true;
+            }
+        }
+        
+        // Verificar colisão com a escada
+        // A escada está posicionada no centro (X=0) e vai de Z_INTERNO/2+0.3f para trás por Z_ESCADA
+        float escada_x_min = -X_ESCADA/2 - margem;
+        float escada_x_max = X_ESCADA/2 + margem;
+        float escada_z_frente = Z_INTERNO/2 + 0.3f + margem;  // Frente da escada (mais à frente)
+        float escada_z_tras = Z_INTERNO/2 + 0.3f - Z_ESCADA - margem; // Trás da escada
+        
+        // Verificar se o jogador está na área horizontal da escada
+        if (nova_pos_x >= escada_x_min && nova_pos_x <= escada_x_max &&
+            nova_pos_z >= escada_z_tras && nova_pos_z <= escada_z_frente) {
+            
+            // Calcular a altura esperada do degrau na posição Z do jogador
+            float pos_relativa_z = escada_z_frente - nova_pos_z; // Distância da frente da escada
+            int degrau_atual = (int)(pos_relativa_z / PROFUNDIDADE_DEGRAU);
+            
+            // Limitar o degrau aos limites válidos
+            if (degrau_atual >= 0 && degrau_atual < NUM_DEGRAUS) {
+                float altura_degrau_atual = degrau_atual * ALTURA_DEGRAU;
+                
+                // Se o jogador está no nível do chão (pos_y ~= 0) e deveria estar num degrau elevado,
+                // impedir o movimento (simula que não pode atravessar o degrau)
+                if (pos_y < altura_degrau_atual + 0.5f) {
+                    colisao = true;
+                }
+            }
+        }
+        
+        // Verificar colisão com o altar (posicionado em x=0, z=-Z_INTERNO/2 + 3.0f)
+        float altar_x_min = -4.0f - margem; // Altar tem largura ~8.0f
+        float altar_x_max = 4.0f + margem;
+        float altar_z_min = -Z_INTERNO/2 + 3.0f - 1.25f - margem; // Altar tem profundidade ~2.5f
+        float altar_z_max = -Z_INTERNO/2 + 3.0f + 1.25f + margem;
+        
+        if (nova_pos_x >= altar_x_min && nova_pos_x <= altar_x_max &&
+            nova_pos_z >= altar_z_min && nova_pos_z <= altar_z_max) {
+            colisao = true;
+        }
+        
+        // Verificar colisão com bancos (simplificada - área geral dos bancos)
+        // Bancos estão nas laterais, de Z_INTERNO/2 - 4.0f até Z_INTERNO/2 - 19.0f (5 fileiras * 3.0f)
+        float bancos_z_min = Z_INTERNO/2 - 19.0f - margem;
+        float bancos_z_max = Z_INTERNO/2 - 4.0f + margem;
+        
+        // Lado esquerdo dos bancos (-8.0f a -2.0f aproximadamente)
+        if (nova_pos_x >= -9.0f - margem && nova_pos_x <= -2.0f + margem &&
+            nova_pos_z >= bancos_z_min && nova_pos_z <= bancos_z_max) {
+            colisao = true;
+        }
+        
+        // Lado direito dos bancos (2.0f a 9.0f aproximadamente)
+        if (nova_pos_x >= 2.0f - margem && nova_pos_x <= 9.0f + margem &&
+            nova_pos_z >= bancos_z_min && nova_pos_z <= bancos_z_max) {
+            colisao = true;
         }
         
         // Aplicar movimento apenas se não houver colisão

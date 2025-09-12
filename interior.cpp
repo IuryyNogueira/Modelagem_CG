@@ -58,10 +58,10 @@ void desenha_caminho_verde() {
     glColor3f(0.2f, 0.6f, 0.2f); // Verde do caminho
     glBegin(GL_QUADS);
         glNormal3f(0.0f, 1.0f, 0.0f);
-        glVertex3f(-1.2f, base_y + 0.02f, Z_INTERNO/2 - 1.0f); // Começa próximo à entrada
-        glVertex3f(1.2f, base_y + 0.02f, Z_INTERNO/2 - 1.0f);
-        glVertex3f(1.2f, base_y + 0.02f, -Z_INTERNO/2 + 5.0f); // Termina antes do altar
-        glVertex3f(-1.2f, base_y + 0.02f, -Z_INTERNO/2 + 5.0f);
+        glVertex3f(-1.2f, base_y + 0.02f, Z_INTERNO/2 - 3.0f); // Começa mais dentro da igreja
+        glVertex3f(1.2f, base_y + 0.02f, Z_INTERNO/2 - 3.0f);
+        glVertex3f(1.2f, base_y + 0.02f, -Z_INTERNO/2 + 6.0f); // Termina um pouco antes do altar
+        glVertex3f(-1.2f, base_y + 0.02f, -Z_INTERNO/2 + 6.0f);
     glEnd();
 }
 
@@ -174,34 +174,187 @@ void desenha_arranjos_flores() {
     desenha_arranjo_flores(5.0f, -Z_INTERNO/2 + 8.0f);
 }
 
+void desenha_biblia() {
+    float base_y = ALTURA_PLATAFORMA;
+    
+    glPushMatrix();
+    glTranslatef(0.0f, base_y + 0.8f + 0.04f, -Z_INTERNO/2 + 3.0f); // Apoiada no topo do altar
+    
+    // Livro da bíblia (formato retangular achatado)
+    glColor3f(0.2f, 0.1f, 0.05f); // Marrom escuro (couro)
+    glPushMatrix();
+    glRotatef(15.0f, 0.0f, 1.0f, 0.0f); // Ligeiramente rotacionada para parecer natural
+    glScalef(0.6f, 0.08f, 0.4f); // Livro achatado
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Páginas (cor mais clara)
+    glColor3f(0.95f, 0.92f, 0.85f); // Cor de papel envelhecido
+    glPushMatrix();
+    glRotatef(15.0f, 0.0f, 1.0f, 0.0f);
+    glTranslatef(0.05f, 0.05f, 0.0f); // Ligeiramente deslocado para simular páginas
+    glScalef(0.55f, 0.05f, 0.35f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Cruz dourada na capa (pequena)
+    glColor3f(0.8f, 0.6f, 0.1f); // Dourado
+    glPushMatrix();
+    glRotatef(15.0f, 0.0f, 1.0f, 0.0f);
+    glTranslatef(0.0f, 0.08f, -0.1f);
+    
+    // Haste vertical da cruz
+    glPushMatrix();
+    glScalef(0.02f, 0.02f, 0.08f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Haste horizontal da cruz
+    glPushMatrix();
+    glTranslatef(0.0f, 0.0f, 0.02f);
+    glScalef(0.02f, 0.02f, 0.05f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    glPopMatrix();
+    
+    glPopMatrix();
+}
+
+void desenha_castical_longo(float x, float z) {
+    float base_y = ALTURA_PLATAFORMA;
+    
+    glPushMatrix();
+    glTranslatef(x, base_y, z);
+    
+    // Base do castiçal (dourado/bronze)
+    glColor3f(0.8f, 0.6f, 0.2f);
+    glPushMatrix();
+    glTranslatef(0.0f, 0.2f, 0.0f);
+    glScalef(0.4f, 0.4f, 0.4f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Haste longa do castiçal
+    glColor3f(0.7f, 0.5f, 0.1f); // Bronze mais escuro
+    glPushMatrix();
+    glTranslatef(0.0f, 1.0f, 0.0f);
+    glScalef(0.08f, 1.6f, 0.08f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Prato do castiçal (onde fica a vela)
+    glColor3f(0.8f, 0.6f, 0.2f);
+    glPushMatrix();
+    glTranslatef(0.0f, 1.8f, 0.0f);
+    glScalef(0.25f, 0.05f, 0.25f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Vela
+    glColor3f(0.95f, 0.9f, 0.8f); // Cor de cera
+    glPushMatrix();
+    glTranslatef(0.0f, 2.1f, 0.0f);
+    glScalef(0.12f, 0.6f, 0.12f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Chama da vela (pequena esfera laranja)
+    glColor3f(1.0f, 0.5f, 0.0f); // Laranja da chama
+    glPushMatrix();
+    glTranslatef(0.0f, 2.5f, 0.0f);
+    glScalef(0.06f, 0.1f, 0.06f);
+    glutSolidSphere(1.0f, 8, 8);
+    glPopMatrix();
+    
+    glPopMatrix();
+}
+
+void desenha_bloco_com_vela(float x, float z) {
+    float base_y = ALTURA_PLATAFORMA;
+    
+    glPushMatrix();
+    glTranslatef(x, base_y, z);
+    
+    // Bloco retangular (pedra/mármore)
+    glColor3f(0.85f, 0.82f, 0.8f); // Cor de mármore
+    glPushMatrix();
+    glTranslatef(0.0f, 0.3f, 0.0f);
+    glScalef(1.2f, 0.6f, 0.8f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Vela em cima do bloco
+    glColor3f(0.95f, 0.9f, 0.8f); // Cor de cera
+    glPushMatrix();
+    glTranslatef(0.0f, 0.8f, 0.0f);
+    glScalef(0.15f, 0.4f, 0.15f);
+    glutSolidCube(1.0f);
+    glPopMatrix();
+    
+    // Chama da vela
+    glColor3f(1.0f, 0.5f, 0.0f); // Laranja da chama
+    glPushMatrix();
+    glTranslatef(0.0f, 1.1f, 0.0f);
+    glScalef(0.08f, 0.12f, 0.08f);
+    glutSolidSphere(1.0f, 8, 8);
+    glPopMatrix();
+    
+    glPopMatrix();
+}
+
+void desenha_casticais_e_velas() {
+    // Castiçais longos próximos ao altar
+    desenha_castical_longo(-4.5f, -Z_INTERNO/2 + 2.5f); // Lado esquerdo do altar
+    desenha_castical_longo(4.5f, -Z_INTERNO/2 + 2.5f);  // Lado direito do altar
+    
+    // Castiçais nas laterais do altar
+    desenha_castical_longo(-6.0f, -Z_INTERNO/2 + 5.0f);
+    desenha_castical_longo(6.0f, -Z_INTERNO/2 + 5.0f);
+    
+    // Blocos com velas próximos à entrada
+    desenha_bloco_com_vela(-7.0f, Z_INTERNO/2 - 3.0f);
+    desenha_bloco_com_vela(7.0f, Z_INTERNO/2 - 3.0f);
+    
+    // Blocos com velas no meio da igreja
+    desenha_bloco_com_vela(-8.0f, -5.0f);
+    desenha_bloco_com_vela(8.0f, -5.0f);
+}
+
 void desenha_bancos() {
     // Bancos inclinados no sentido anti-horário (posicionados corretamente)
-    // Duas fileiras de cada lado do caminho verde
+    // A linha de bancos também segue a rotação individual
     
     float rotacao = -8.0f; // Inclinação anti-horária
     
     // Lado esquerdo - primeira fileira (mais próxima do caminho)
     for(int i = 0; i < 5; i++) {
-        float z = Z_INTERNO/2 - 4.0f - i * 3.0f; // Espaçamento de 3m entre bancos
-        desenha_banco_individual(-4.0f, z, rotacao);
+        float z_base = Z_INTERNO/2 - 4.0f - i * 3.0f;
+        // Aplicar offset lateral baseado na rotação para formar linha diagonal
+        float x_offset = i * 0.3f; // Pequeno deslocamento em X para seguir a rotação
+        desenha_banco_individual(-4.0f + x_offset, z_base, rotacao);
     }
     
     // Lado esquerdo - segunda fileira (mais próxima da parede)
     for(int i = 0; i < 5; i++) {
-        float z = Z_INTERNO/2 - 4.0f - i * 3.0f;
-        desenha_banco_individual(-8.0f, z, rotacao);
+        float z_base = Z_INTERNO/2 - 4.0f - i * 3.0f;
+        float x_offset = i * 0.3f; // Mesmo offset para manter paralelismo
+        desenha_banco_individual(-8.0f + x_offset, z_base, rotacao);
     }
     
     // Lado direito - primeira fileira (mais próxima do caminho)
     for(int i = 0; i < 5; i++) {
-        float z = Z_INTERNO/2 - 4.0f - i * 3.0f;
-        desenha_banco_individual(4.0f, z, -rotacao); // Rotação oposta
+        float z_base = Z_INTERNO/2 - 4.0f - i * 3.0f;
+        // Offset negativo no lado direito para rotação oposta
+        float x_offset = -i * 0.3f; 
+        desenha_banco_individual(4.0f + x_offset, z_base, -rotacao); // Rotação oposta
     }
     
     // Lado direito - segunda fileira (mais próxima da parede)
     for(int i = 0; i < 5; i++) {
-        float z = Z_INTERNO/2 - 4.0f - i * 3.0f;
-        desenha_banco_individual(8.0f, z, -rotacao); // Rotação oposta
+        float z_base = Z_INTERNO/2 - 4.0f - i * 3.0f;
+        float x_offset = -i * 0.3f; // Mesmo offset negativo
+        desenha_banco_individual(8.0f + x_offset, z_base, -rotacao); // Rotação oposta
     }
 }
 
@@ -210,174 +363,8 @@ void desenha_interior() {
     desenha_caminho_verde();
     desenha_altar();
     desenha_cruz_grande();
+    desenha_biblia(); // Bíblia em cima do altar
     desenha_bancos();
     desenha_arranjos_flores(); // Adicionar arranjos de flores brancas
+    desenha_casticais_e_velas(); // Adicionar castiçais e velas
 }
-//     // Altar no fundo da igreja (como na imagem real)
-//     float largura_altar = 10.0f;
-//     float altura_altar = 1.5f;
-//     float profundidade_altar = 4.0f;
-//     float base_y = ALTURA_PLATAFORMA;
-    
-//     // Parede de fundo do altar (cor laranja/terracota como na imagem)
-//     glColor3f(0.8f, 0.4f, 0.2f); // Cor terracota
-//     glPushMatrix();
-//     glTranslatef(0.0f, base_y + 6.0f, -COMPRIMENTO + 2.0f);
-//     glScalef(LARGURA - 4.0f, 12.0f, 1.0f);
-//     glutSolidCube(1.0f);
-//     glPopMatrix();
-    
-//     // Base elevada do altar
-//     glColor3f(0.7f, 0.6f, 0.5f); // Cor de pedra/concreto
-//     glPushMatrix();
-//     glTranslatef(0.0f, base_y + altura_altar/2 + 0.5f, -COMPRIMENTO + 6.0f);
-//     glScalef(largura_altar + 2.0f, altura_altar, profundidade_altar + 2.0f);
-//     glutSolidCube(1.0f);
-//     glPopMatrix();
-    
-//     // Mesa do altar (madeira)
-//     glColor3f(0.6f, 0.4f, 0.2f); // Madeira escura como na imagem
-//     glPushMatrix();
-//     glTranslatef(0.0f, base_y + altura_altar + 0.9f, -COMPRIMENTO + 6.0f);
-//     glScalef(largura_altar, 0.3f, profundidade_altar);
-//     glutSolidCube(1.0f);
-//     glPopMatrix();
-    
-//     // Cruz no altar
-//     glColor3f(0.9f, 0.8f, 0.7f); // Cor clara para a cruz
-//     glPushMatrix();
-//     glTranslatef(0.0f, base_y + altura_altar + 2.0f, -COMPRIMENTO + 4.0f);
-//     // Haste vertical
-//     glPushMatrix();
-//     glScalef(0.3f, 3.0f, 0.3f);
-//     glutSolidCube(1.0f);
-//     glPopMatrix();
-//     // Haste horizontal
-//     glPushMatrix();
-//     glTranslatef(0.0f, 0.5f, 0.0f);
-//     glScalef(1.8f, 0.3f, 0.3f);
-//     glutSolidCube(1.0f);
-//     glPopMatrix();
-//     glPopMatrix();
-// }
-
-// void desenha_bancos() {
-//     // Bancos removidos para melhorar a vista da igreja
-// }
-
-// void desenha_pulpito() {
-//     // Púlpito moderno na lateral direita (como nas igrejas modernas)
-//     float base_y = ALTURA_PLATAFORMA;
-    
-//     glColor3f(0.6f, 0.4f, 0.2f); // Madeira escura
-    
-//     glPushMatrix();
-//     glTranslatef(15.0f, base_y + 1.8f, -COMPRIMENTO + 15.0f); // Lateral direita, próximo ao altar
-    
-//     // Base do púlpito (mais moderna e elegante)
-//     glPushMatrix();
-//     glScalef(3.0f, 3.6f, 2.5f);
-//     glutSolidCube(1.0f);
-//     glPopMatrix();
-    
-//     // Superfície do púlpito
-//     glColor3f(0.55f, 0.35f, 0.15f);
-//     glPushMatrix();
-//     glTranslatef(0.0f, 1.8f, 0.5f);
-//     glScalef(3.2f, 0.2f, 1.8f);
-//     glutSolidCube(1.0f);
-//     glPopMatrix();
-    
-//     // Pequenos degraus de acesso
-//     glColor3f(0.5f, 0.3f, 0.1f);
-//     for (int i = 0; i < 2; ++i) {
-//         glPushMatrix();
-//         glTranslatef(-2.0f, -1.8f + i * 0.4f, 0.0f);
-//         glScalef(1.2f, 0.3f, 2.0f);
-//         glutSolidCube(1.0f);
-//         glPopMatrix();
-//     }
-    
-//     glPopMatrix();
-// }
-
-// void desenha_colunas() {
-//     // Remover colunas - a igreja da imagem não tem colunas internas visíveis
-//     // A estrutura metálica do teto é suficiente
-// }
-
-// void desenha_pia_batismal() {
-//     // Simplificar - não é muito visível na imagem real
-// }
-
-// void desenha_confessionarios() {
-//     // Remover confessionários - não aparecem na igreja moderna da imagem
-// }
-
-// void desenha_decoracoes() {
-//     // Elementos decorativos simples como na igreja real
-//     float base_y = ALTURA_PLATAFORMA;
-    
-//     // Símbolos ou objetos simples no altar
-//     glColor3f(0.8f, 0.7f, 0.2f); // Dourado
-    
-//     // Objetos simples no altar
-//     glPushMatrix();
-//     glTranslatef(-1.5f, base_y + 2.5f, -COMPRIMENTO + 6.0f);
-//     glScalef(0.4f, 0.8f, 0.4f);
-//     glutSolidCube(1.0f);
-//     glPopMatrix();
-    
-//     glPushMatrix();
-//     glTranslatef(1.5f, base_y + 2.5f, -COMPRIMENTO + 6.0f);
-//     glScalef(0.4f, 0.8f, 0.4f);
-//     glutSolidCube(1.0f);
-//     glPopMatrix();
-// }
-
-// void desenha_piso() {
-//     // Piso de concreto/pedra como na imagem real
-//     float base_y = ALTURA_PLATAFORMA;
-    
-//     glColor3f(0.75f, 0.75f, 0.78f); // Cor de concreto/pedra clara
-    
-//     // Piso principal da igreja
-//     glBegin(GL_QUADS);
-//         glNormal3f(0.0f, 1.0f, 0.0f);
-//         glVertex3f(-LARGURA/2 + 1.0f, base_y + 0.01f, -1.0f);
-//         glVertex3f(LARGURA/2 - 1.0f, base_y + 0.01f, -1.0f);
-//         glVertex3f(LARGURA/2 - 1.0f, base_y + 0.01f, -COMPRIMENTO + 1.0f);
-//         glVertex3f(-LARGURA/2 + 1.0f, base_y + 0.01f, -COMPRIMENTO + 1.0f);
-//     glEnd();
-    
-//     // Corredor central (cor ligeiramente diferente)
-//     glColor3f(0.7f, 0.7f, 0.73f);
-//     glBegin(GL_QUADS);
-//         glNormal3f(0.0f, 1.0f, 0.0f);
-//         glVertex3f(-1.5f, base_y + 0.02f, -1.0f);
-//         glVertex3f(1.5f, base_y + 0.02f, -1.0f);
-//         glVertex3f(1.5f, base_y + 0.02f, -COMPRIMENTO + 8.0f);
-//         glVertex3f(-1.5f, base_y + 0.02f, -COMPRIMENTO + 8.0f);
-//     glEnd();
-    
-//     // Área elevada do altar
-//     glColor3f(0.8f, 0.8f, 0.82f);
-//     glBegin(GL_QUADS);
-//         glNormal3f(0.0f, 1.0f, 0.0f);
-//         glVertex3f(-LARGURA/2 + 2.0f, base_y + 0.5f, -COMPRIMENTO + 8.0f);
-//         glVertex3f(LARGURA/2 - 2.0f, base_y + 0.5f, -COMPRIMENTO + 8.0f);
-//         glVertex3f(LARGURA/2 - 2.0f, base_y + 0.5f, -COMPRIMENTO + 1.0f);
-//         glVertex3f(-LARGURA/2 + 2.0f, base_y + 0.5f, -COMPRIMENTO + 1.0f);
-//     glEnd();
-// }
-
-// void desenha_interior() {
-//     desenha_piso();
-//     desenha_altar();
-//     desenha_bancos();
-//     desenha_pulpito();
-//     desenha_colunas();
-//     desenha_pia_batismal();
-//     desenha_confessionarios();
-//     desenha_decoracoes();
-// }

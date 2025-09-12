@@ -45,6 +45,11 @@ const float SENS_MOUSE = 0.003f; // Sensibilidade do mouse mais confortável
 // --- Flags para teclas pressionadas ---
 bool keyStates[256] = {false};
 
+// --- Controle da porta ---
+bool porta_aberta = false;
+float angulo_porta = 0.0f;
+bool proximo_da_porta = false;
+
 /**
  * @brief Desenha um bloco (paralelepípedo) em uma posição específica.
  * * @param largura A dimensão total no eixo X.
@@ -209,3 +214,4 @@ void desenha_prisma_triangular(float largura, float altura, float profundidade,
 
     glPopMatrix();
 }
+
