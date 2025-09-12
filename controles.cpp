@@ -137,25 +137,25 @@ void atualiza_movimento() {
         bool colisao = false;
         
         // Se estiver na área da igreja, verificar colisão com paredes
-        if (nova_pos_z >= -COMPRIMENTO - 2.0f && nova_pos_z <= 2.0f &&
-            nova_pos_x >= -LARGURA/2 - 5.0f && nova_pos_x <= LARGURA/2 + 5.0f) {
+        if (nova_pos_z >= -Z_TERRENO - 2.0f && nova_pos_z <= 2.0f &&
+            nova_pos_x >= -X_TERRENO - 5.0f && nova_pos_x <= X_TERRENO + 5.0f) {
             
             // Verificar colisão com parede esquerda (incluindo espessura)
-            if (nova_pos_x <= -LARGURA/2 + 1.5f) {
+            if (nova_pos_x <= -X_TERRENO + 1.5f) {
                 colisao = true;
             }
             // Verificar colisão com parede direita (incluindo espessura)
-            else if (nova_pos_x >= LARGURA/2 - 1.5f) {
+            else if (nova_pos_x >= X_TERRENO - 1.5f) {
                 colisao = true;
             }
             // Verificar colisão com parede traseira (incluindo espessura)
-            else if (nova_pos_z <= -COMPRIMENTO + 1.5f) {
+            else if (nova_pos_z <= -Z_TERRENO + 1.5f) {
                 colisao = true;
             }
             // Verificar colisão com parede frontal (exceto entrada)
             else if (nova_pos_z >= -0.5f) {
                 // Permitir entrada apenas na área da porta
-                if (nova_pos_x < -LARGURA_ESCADA/2 || nova_pos_x > LARGURA_ESCADA/2) {
+                if (nova_pos_x < -X_ESCADA || nova_pos_x > X_ESCADA) {
                     colisao = true;
                 }
             }
@@ -168,17 +168,17 @@ void atualiza_movimento() {
         }
         
         // Ajuste simples de altura baseado na escada e plataforma
-        if (pos_z > 0 && pos_z <= PROFUNDIDADE_ESCADA && 
-            pos_x >= -LARGURA_ESCADA/2 && pos_x <= LARGURA_ESCADA/2) {
+        if (pos_z > 0 && pos_z <= Z_ESCADA && 
+            pos_x >= -X_ESCADA && pos_x <= X_ESCADA) {
             // Na escada - altura varia com a posição Z
-            float altura_escada = (pos_z / PROFUNDIDADE_ESCADA) * ALTURA_PLATAFORMA;
+            float altura_escada = (pos_z / Z_ESCADA) * ALTURA_PLATAFORMA;
             pos_y = 1.7f + altura_escada;
-        } else if (pos_x >= -LARGURA/2 && pos_x <= LARGURA/2 &&
-                   pos_z >= -COMPRIMENTO && pos_z <= 0.0f) {
+        } else if (pos_x >= -X_TERRENO && pos_x <= X_TERRENO &&
+                   pos_z >= -Z_TERRENO && pos_z <= 0.0f) {
             // Dentro da igreja na plataforma
             pos_y = 1.7f + ALTURA_PLATAFORMA;
-        } else if (pos_x >= -LARGURA/2 - 5.0f && pos_x <= LARGURA/2 + 5.0f &&
-                   pos_z >= -COMPRIMENTO - 5.0f && pos_z <= 5.0f) {
+        } else if (pos_x >= -X_TERRENO - 5.0f && pos_x <= X_TERRENO + 5.0f &&
+                   pos_z >= -Z_TERRENO - 5.0f && pos_z <= 5.0f) {
             // Na área da plataforma da igreja
             pos_y = 1.7f + ALTURA_PLATAFORMA;
         } else {

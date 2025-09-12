@@ -10,7 +10,7 @@
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
-    glutInitWindowSize(1024, 768);
+    glutInitWindowSize(1920, 1080);
     glutCreateWindow("Igreja 3D - C++ / OpenGL | W/S/A/D = andar, R/T = rotacionar, Mouse = olhar, ESC = sair");
 
     inicializa();
