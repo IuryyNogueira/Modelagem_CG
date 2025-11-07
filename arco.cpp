@@ -70,7 +70,7 @@ void desenha_arco_moderno() {
         float x2 = t2 * (largura_total_arco / 2);
         
         // Pontos internos (arco oco)
-        float fator_interno = 0.93f; // 93% do tamanho para criar espessura mais fina
+        float fator_interno = 0.93f; 
         float y1_int = y1 * fator_interno;
         float y2_int = y2 * fator_interno;
         float x1_int = x1 * fator_interno;
