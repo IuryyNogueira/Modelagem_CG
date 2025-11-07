@@ -5,6 +5,11 @@
 #include "arco.h"
 #include "interior.h"
 #include "constantes.h"
+#include "sombras.h"
+#include "iluminacao.h"
+#include "feixes_luz.h"
+#include "particulas.h"
+#include "janela.h"
 
 void desenha_igreja() {
     glPushMatrix();
@@ -14,6 +19,9 @@ void desenha_igreja() {
     
     // Desenhar as paredes (já ajustadas para ficarem na altura da plataforma)
     desenha_parede();
+    
+    // Desenhar janelas laterais
+    desenha_janelas_laterais();
     
     // Desenhar o interior da igreja
     desenha_interior();
@@ -29,6 +37,24 @@ void desenha_igreja() {
 
     // // Desenhar cruz no topo
     desenha_arco();
-
+    
     glPopMatrix();
+    
+    // ===== FEIXES DE LUZ VOLUMÉTRICOS =====
+    sistema_feixes_luz.desenhar_todos_feixes();
+    
+    // Sombras desabilitadas (causando artefatos visuais)
+    // ===== RENDERIZAR SOMBRAS SUTIS =====
+    // GLfloat pos_luz_sol[4];
+    // glGetLightfv(GL_LIGHT0, GL_POSITION, pos_luz_sol);
+    // if (pos_luz_sol[3] == 0.0f) {
+    //     float distancia = 500.0f;
+    //     pos_luz_sol[0] *= distancia;
+    //     pos_luz_sol[1] *= distancia;
+    //     pos_luz_sol[2] *= distancia;
+    //     pos_luz_sol[3] = 1.0f;
+    // }
+    // sistema_sombras.iniciar_sombra_chao(pos_luz_sol);
+    // sistema_sombras.desenhar_sombras_interiores();
+    // sistema_sombras.finalizar_sombra();
 }

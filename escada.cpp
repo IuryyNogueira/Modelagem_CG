@@ -1,9 +1,14 @@
 #include "escada.h"
 #include "constantes.h"
+#include "texturas.h"
+#include "iluminacao.h"
 
 void desenha_rampas_laterais() {
-    // Rampas laterais que conectam as laterais da igreja ao último degrau da escada
-    glColor3f(0.55f, 0.55f, 0.57f); // Cor ligeiramente diferente para as rampas
+    // Aplicar textura de concreto
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, gerenciador_texturas.concreto);
+    sistema_iluminacao.configurar_material_parede();
+    glColor3f(0.8f, 0.8f, 0.8f);
     
     // Calcular parâmetros das rampas
     float altura_inicial = 0.2f; // Altura inicial das rampas
@@ -41,11 +46,16 @@ void desenha_rampas_laterais() {
         desenha_bloco(largura_rampa, altura_segmento, profundidade_segmento,
                       x_segmento - .3f, y_segmento, z_ultimo_degrau);
     }
+    
+    glDisable(GL_TEXTURE_2D);
 }
 
 void desenha_blocos_grama() {
-    // Blocos de grama laterais dos lados da escada, embaixo da altura do arco
-    glColor3f(0.2f, 0.6f, 0.2f); // Verde da grama
+    // Aplicar textura de grama
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, gerenciador_texturas.grama);
+    sistema_iluminacao.configurar_material_parede();
+    glColor3f(0.8f, 0.9f, 0.8f);
     
     float altura_grama = 0.3f; // Altura dos blocos de grama
     
@@ -61,11 +71,16 @@ void desenha_blocos_grama() {
     // Bloco de grama direito
     desenha_bloco(largura_grama, altura_grama, profundidade_grama, 
                   X_ESCADA/2 + largura_grama/2 + 1.0f, altura_grama/2, pos_z_grama);
+    
+    glDisable(GL_TEXTURE_2D);
 }
 
 void desenha_corrimao_escada() {
-    // Corrimãos laterais da escada principal
-    glColor3f(0.4f, 0.3f, 0.2f); // Cor de madeira escura
+    // Aplicar textura de madeira escura
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, gerenciador_texturas.madeira_escura);
+    sistema_iluminacao.configurar_material_madeira();
+    glColor3f(0.6f, 0.4f, 0.2f); // Cor de madeira escura
     
     float altura_corrimao = 1.0f;
     float espessura_corrimao = 0.1f;
@@ -100,19 +115,27 @@ void desenha_corrimao_escada() {
         desenha_bloco(espessura_corrimao, espessura_corrimao, comprimento_segmento,
                       X_ESCADA/2 + 0.2f, altura_segmento, z_segmento - comprimento_segmento/2);
     }
+    
+    glDisable(GL_TEXTURE_2D);
 }
 
 void desenha_escada() {
     // Escada central que vai do chão até a altura da plataforma
     float altura_degrau = ALTURA_DEGRAU;
 
-    glColor3f(0.6f, 0.6f, 0.6f); // Cor de concreto para escada
+    // Aplicar textura de mármore
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, gerenciador_texturas.piso_marmore);
+    sistema_iluminacao.configurar_material_marmore();
+    glColor3f(0.95f, 0.95f, 0.95f);
     
     for (int i = 0; i < NUM_DEGRAUS; ++i) {
         // Posicionar cada degrau: termina na fachada (Z_INTERNO/2) e vai para trás
         desenha_bloco(X_ESCADA, altura_degrau, PROFUNDIDADE_DEGRAU, 
                       0.0f, i * altura_degrau, Z_INTERNO/2 + Z_ESCADA - (i * PROFUNDIDADE_DEGRAU) + .3f);
     }
+    
+    glDisable(GL_TEXTURE_2D);
     
     // Desenhar as rampas laterais partindo da base (braços do T)
     desenha_rampas_laterais();

@@ -1,6 +1,9 @@
 #include "controles.h"
 #include "constantes.h"
 #include "igreja.h"
+#include "iluminacao.h"
+#include "texturas.h"
+#include "skybox.h"
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -47,19 +50,26 @@ void desenha_interface() {
 void desenha_chao() {
     float tamanho = 200.0f;
     
-    // Chão principal - concreto urbano como na imagem
-    glColor3f(0.6f, 0.6f, 0.62f); // Cinza concreto
+    // Aplicar textura de grama
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, gerenciador_texturas.grama);
+    sistema_iluminacao.configurar_material_parede();
+    
+    // Cor BRANCA para não alterar a textura - problema estava aqui!
+    glColor3f(1.0f, 1.0f, 1.0f);
+    
     glNormal3f(0.0f, 1.0f, 0.0f);
     glBegin(GL_QUADS);
-        glVertex3f(-tamanho, 0.0f, -tamanho);
-        glVertex3f( tamanho, 0.0f, -tamanho);
-        glVertex3f( tamanho, 0.0f,  tamanho);
-        glVertex3f(-tamanho, 0.0f,  tamanho);
+        glTexCoord2f(0.0f, 0.0f); glVertex3f(-tamanho, 0.0f, -tamanho);
+        glTexCoord2f(20.0f, 0.0f); glVertex3f( tamanho, 0.0f, -tamanho);
+        glTexCoord2f(20.0f, 20.0f); glVertex3f( tamanho, 0.0f,  tamanho);
+        glTexCoord2f(0.0f, 20.0f); glVertex3f(-tamanho, 0.0f,  tamanho);
     glEnd();
+    glDisable(GL_TEXTURE_2D);
     
-    // Adicionar algumas linhas de divisão no concreto
-    glColor3f(0.5f, 0.5f, 0.52f); // Linha mais escura
-    glLineWidth(2.0f);
+    // Linhas de divisão no terreno (opcional, mais escuras)
+    glColor3f(0.3f, 0.5f, 0.3f);
+    glLineWidth(1.0f);
     glBegin(GL_LINES);
         // Linhas horizontais
         for (int i = -5; i <= 5; i++) {
@@ -89,6 +99,12 @@ void display() {
         0.0f, 1.0f, 0.0f // vetor up
     );
 
+    // Atualizar sistema de iluminação
+    sistema_iluminacao.atualizar(0.016f); // ~60 FPS
+
+    // Desenhar skybox PRIMEIRO (fundo)
+    desenha_skybox();
+    
     desenha_chao();
     desenha_igreja();
     desenha_interface();
@@ -195,8 +211,8 @@ void atualiza_movimento() {
         move_z /= len;
         
         // Calcular nova posição
-        float nova_pos_x = pos_x + move_x * VELOCIDADE * 0.3f;
-        float nova_pos_z = pos_z + move_z * VELOCIDADE * 0.3f;
+        float nova_pos_x = pos_x + move_x * VELOCIDADE * 0.5f;
+        float nova_pos_z = pos_z + move_z * VELOCIDADE * 0.5f;
         
         // Detecção de colisão com as paredes baseada nos blocos reais
         bool colisao = false;

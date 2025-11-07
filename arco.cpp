@@ -1,5 +1,6 @@
 #include "arco.h"
 #include "constantes.h"
+#include "iluminacao.h"
 #include <cmath>
 
 void desenha_cruz() {
@@ -8,7 +9,8 @@ void desenha_cruz() {
     float largura_cruz = 3.0f;
     float espessura = 0.5f;
     
-    glColor3f(0.15f, 0.15f, 0.15f); // Cinza bem escuro para destaque
+    sistema_iluminacao.configurar_material_metal();
+    glColor3f(0.3f, 0.3f, 0.3f); // Cinza escuro para destaque
     
     glPushMatrix();
     // Posicionar no topo do arco parabólico (ponto mais alto)
@@ -47,7 +49,8 @@ void desenha_arco_moderno() {
     float largura_total_arco = X_INTERNO * 0.7f; // Achatado - baseado na largura interna da igreja
     float profundidade_arco = 2.0f;
     
-    glColor3f(0.92f, 0.92f, 0.90f); // Cor branca como na imagem
+    sistema_iluminacao.configurar_material_parede();
+    glColor3f(0.95f, 0.95f, 0.93f); // Cor branca como na imagem
     
     // Desenhar arco parabólico usando muitos segmentos para suavidade
     int num_segmentos = 30;

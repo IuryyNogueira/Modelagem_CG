@@ -1,0 +1,12 @@
+parede_externa=NOT_FOUND
+parede_interna=NOT_FOUND
+piso_marmore=piso_marmore.jpg
+madeira_escura=madeira_escura.jpg
+madeira_porta=madeira_porta.jpg
+concreto=concreto.jpg
+telha_colonial=telha_colonial.jpg
+vitral_colorido=vitral_colorido.jpg
+grama=grama.png
+pedra_caminho=pedra_caminho.png
+metal_bronze=metal_bronze.jpg
+tecido_vermelho=tecido_vermelho.jpg

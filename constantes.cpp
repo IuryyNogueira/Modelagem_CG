@@ -30,7 +30,7 @@ const float ALTURA_DEGRAU = ALTURA_PLATAFORMA / NUM_DEGRAUS; // Altura de cada d
 // --- Controle da câmera em primeira pessoa ---
 float pos_x = 0.0f;
 float pos_y = 1.7f; // altura dos olhos de uma pessoa (1.70m)
-float pos_z = 15.0f; // posição mais próxima para escala humana
+float pos_z = 35.0f; // Posição inicial mais afastada da igreja
 float dir = 0.0f; // direção em radianos (0 = olhando para -z)
 float pitch = 0.0f; // sem inclinação inicial
 const float VELOCIDADE = 0.3f;
@@ -102,12 +102,18 @@ void desenha_bloco(float largura, float altura, float profundidade,
         {0.0, 0.0, 1.0}, {0.0, 0.0, -1.0}, {0.0, 1.0, 0.0},
         {0.0, -1.0, 0.0}, {-1.0, 0.0, 0.0}, {1.0, 0.0, 0.0}
     };
+    
+    // Coordenadas de textura para cada vértice de cada face
+    GLfloat texCoords[4][2] = {
+        {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}
+    };
 
-    // Desenha as 6 faces do bloco
+    // Desenha as 6 faces do bloco com coordenadas de textura
     glBegin(GL_QUADS);
     for (int i = 0; i < 6; i++) {
         glNormal3fv(normais[i]);
         for (int j = 0; j < 4; j++) {
+            glTexCoord2fv(texCoords[j]);
             glVertex3fv(vertices[faces[i][j]]);
         }
     }
@@ -139,15 +145,17 @@ void desenha_prisma_triangular(float largura, float altura, float profundidade,
 
     // Definimos os 6 vértices únicos do prisma.
     // A base fica em Y=0.
-    //      2
-    //     / \
-    //    /   \
-    //   0-----1  (Face da frente, com Z positivo)
-    //
-    //      5
-    //     / \
-    //    /   \
-    //   3-----4  (Face de trás, com Z negativo)
+    /*
+         2
+        / \
+       /   \
+      0-----1  (Face da frente, com Z positivo)
+    
+         5
+        / \
+       /   \
+      3-----4  (Face de trás, com Z negativo)
+    */
 
     float x = largura / 2.0f;
     float y = altura;
@@ -163,13 +171,16 @@ void desenha_prisma_triangular(float largura, float altura, float profundidade,
     };
     
     // Normais para as 5 faces. As normais das rampas são calculadas
-    // para serem perpendiculares às faces inclinadas.
+    // para serem perpendiculares às faces inclinadas e NORMALIZADAS.
+    // Normalização: dividir cada componente pela magnitude do vetor
+    float mag = sqrt(altura * altura + x * x);  // magnitude = sqrt(h² + x²)
+    
     GLfloat normais[5][3] = {
-        {0.0, 0.0, 1.0},        // 0: Frente
-        {0.0, 0.0, -1.0},       // 1: Trás
-        {0.0, -1.0, 0.0},       // 2: Base
-        {-altura, x, 0.0},      // 3: Rampa esquerda (vetor (-y, x))
-        { altura, x, 0.0}       // 4: Rampa direita (vetor (y, x))
+        {0.0, 0.0, 1.0},           // 0: Frente
+        {0.0, 0.0, -1.0},          // 1: Trás
+        {0.0, -1.0, 0.0},          // 2: Base
+        {-altura/mag, x/mag, 0.0}, // 3: Rampa esquerda NORMALIZADA
+        { altura/mag, x/mag, 0.0}  // 4: Rampa direita NORMALIZADA
     };
 
 
@@ -177,39 +188,39 @@ void desenha_prisma_triangular(float largura, float altura, float profundidade,
     glBegin(GL_TRIANGLES);
         // Face da Frente
         glNormal3fv(normais[0]);
-        glVertex3fv(vertices[0]);
-        glVertex3fv(vertices[1]);
-        glVertex3fv(vertices[2]);
+        glTexCoord2f(0.0f, 0.0f); glVertex3fv(vertices[0]);
+        glTexCoord2f(1.0f, 0.0f); glVertex3fv(vertices[1]);
+        glTexCoord2f(0.5f, 1.0f); glVertex3fv(vertices[2]);
 
         // Face de Trás
         glNormal3fv(normais[1]);
-        glVertex3fv(vertices[4]); // Ordem anti-horária vista de trás
-        glVertex3fv(vertices[3]);
-        glVertex3fv(vertices[5]);
+        glTexCoord2f(1.0f, 0.0f); glVertex3fv(vertices[4]); // Ordem anti-horária vista de trás
+        glTexCoord2f(0.0f, 0.0f); glVertex3fv(vertices[3]);
+        glTexCoord2f(0.5f, 1.0f); glVertex3fv(vertices[5]);
     glEnd();
 
     // --- Desenha as faces retangulares (Quads) ---
     glBegin(GL_QUADS);
         // Base
         glNormal3fv(normais[2]);
-        glVertex3fv(vertices[1]); // Ordem anti-horária vista de baixo
-        glVertex3fv(vertices[0]);
-        glVertex3fv(vertices[3]);
-        glVertex3fv(vertices[4]);
+        glTexCoord2f(1.0f, 0.0f); glVertex3fv(vertices[1]); // Ordem anti-horária vista de baixo
+        glTexCoord2f(0.0f, 0.0f); glVertex3fv(vertices[0]);
+        glTexCoord2f(0.0f, 1.0f); glVertex3fv(vertices[3]);
+        glTexCoord2f(1.0f, 1.0f); glVertex3fv(vertices[4]);
 
         // Rampa Esquerda
         glNormal3fv(normais[3]);
-        glVertex3fv(vertices[0]);
-        glVertex3fv(vertices[2]);
-        glVertex3fv(vertices[5]);
-        glVertex3fv(vertices[3]);
+        glTexCoord2f(0.0f, 0.0f); glVertex3fv(vertices[0]);
+        glTexCoord2f(0.0f, 1.0f); glVertex3fv(vertices[2]);
+        glTexCoord2f(1.0f, 1.0f); glVertex3fv(vertices[5]);
+        glTexCoord2f(1.0f, 0.0f); glVertex3fv(vertices[3]);
 
         // Rampa Direita
         glNormal3fv(normais[4]);
-        glVertex3fv(vertices[2]);
-        glVertex3fv(vertices[1]);
-        glVertex3fv(vertices[4]);
-        glVertex3fv(vertices[5]);
+        glTexCoord2f(0.0f, 1.0f); glVertex3fv(vertices[2]);
+        glTexCoord2f(0.0f, 0.0f); glVertex3fv(vertices[1]);
+        glTexCoord2f(1.0f, 0.0f); glVertex3fv(vertices[4]);
+        glTexCoord2f(1.0f, 1.0f); glVertex3fv(vertices[5]);
     glEnd();
 
     glPopMatrix();

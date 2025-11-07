@@ -2,6 +2,7 @@
 #define CONSTANTES_H
 
 #include <GL/glut.h>
+#include <cmath>  // Para sqrt() na normalização das normais
 
 // // --- Medidas principais seguindo a planta baixa ---
 // extern const float LARGURA;

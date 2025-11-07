@@ -1,12 +1,40 @@
 #include "parede.h"
 #include "constantes.h"
+#include "texturas.h"
+#include "iluminacao.h"
 #include <cmath>
 
 void desenha_plataforma() {
+    // Aplicar textura de mármore na plataforma externa
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, gerenciador_texturas.piso_marmore);
+    sistema_iluminacao.configurar_material_marmore();
+    glColor3f(0.95f, 0.95f, 0.95f); // Branco levemente cinza
+    
+    // Desenhar o bloco da plataforma
     desenha_bloco(X_PLATAFORMA_IGREJA, ALTURA_PLATAFORMA, Z_PLATAFORMA_IGREJA);
+    
+    // Desenhar a superfície superior com coordenadas de textura apropriadas
+    glBegin(GL_QUADS);
+        glNormal3f(0.0f, 1.0f, 0.0f);
+        glTexCoord2f(0.0f, 0.0f); 
+        glVertex3f(-X_PLATAFORMA_IGREJA/2, ALTURA_PLATAFORMA, -Z_PLATAFORMA_IGREJA/2);
+        glTexCoord2f(8.0f, 0.0f); 
+        glVertex3f(X_PLATAFORMA_IGREJA/2, ALTURA_PLATAFORMA, -Z_PLATAFORMA_IGREJA/2);
+        glTexCoord2f(8.0f, 10.0f); 
+        glVertex3f(X_PLATAFORMA_IGREJA/2, ALTURA_PLATAFORMA, Z_PLATAFORMA_IGREJA/2);
+        glTexCoord2f(0.0f, 10.0f); 
+        glVertex3f(-X_PLATAFORMA_IGREJA/2, ALTURA_PLATAFORMA, Z_PLATAFORMA_IGREJA/2);
+    glEnd();
+    
+    glDisable(GL_TEXTURE_2D);
 }
 
 void desenha_parede() {
+    // Configurar textura e material das paredes
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, gerenciador_texturas.parede_externa);
+    sistema_iluminacao.configurar_material_parede();
     glColor3f(0.95f, 0.95f, 0.9f);
     
     // Parede esquerda com buracos para janelas (3 janelas)
@@ -44,14 +72,21 @@ void desenha_parede() {
     
     desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA, espaco_janelas, X_INTERNO/2, ALTURA_PLATAFORMA, Z_INTERNO/2 - ESPESSURA_PAREDE - espaco_janelas/2);
     
-    // Parede traseira (sem mudança)
+    // Parede traseira com textura de parede externa (mesma das outras)
+    glColor3f(0.95f, 0.95f, 0.9f);
     desenha_bloco(X_INTERNO, PE_DIREITO_IGREJA, ESPESSURA_PAREDE, 0.0, ALTURA_PLATAFORMA, -Z_INTERNO/2);
     
-    // Paredes frontais (sem mudança)
+    // Paredes frontais laterais (próximas à porta) - mesma textura
     desenha_bloco(12.0f, PE_DIREITO_IGREJA, ESPESSURA_PAREDE, -X_INTERNO/2 + 12.0f/2, ALTURA_PLATAFORMA, Z_INTERNO/2 - .075);
     desenha_bloco(12.0f, PE_DIREITO_IGREJA, ESPESSURA_PAREDE, X_INTERNO/2 - 12.0f/2, ALTURA_PLATAFORMA, Z_INTERNO/2 - .075);
+    
+    glDisable(GL_TEXTURE_2D);
 
-    glColor3f(0.59f, 0.29f, 0.0);
+    glDisable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, gerenciador_texturas.madeira_escura);
+    sistema_iluminacao.configurar_material_madeira();
+    glEnable(GL_TEXTURE_2D);
+    glColor3f(0.6f, 0.4f, 0.2f); // Cor de madeira escura
     
     // Porta esquerda com rotação - buraco está entre (-X_INTERNO/2 + 12.0f) e centro
     // Centro do buraco esquerdo: (-X_INTERNO/2 + 12.0f + 0.0f) / 2 = -X_INTERNO/2 + 6.0f
@@ -69,10 +104,21 @@ void desenha_parede() {
     desenha_bloco(0.05f, 2.1f, 1.2f, -0.6f, 0.0f, 0.0f); // Porta direita
     glPopMatrix();
 
-    glColor3f(1.0f, 0.7f, 0.5f);
+    glDisable(GL_TEXTURE_2D);
+    
+    // Parede frontal central (área entre as portas) - textura padrão
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, gerenciador_texturas.parede_externa);
+    sistema_iluminacao.configurar_material_parede();
+    glColor3f(0.95f, 0.95f, 0.9f);
     desenha_bloco(8.3f, PE_DIREITO_IGREJA, ESPESSURA_PAREDE, 0.0f, ALTURA_PLATAFORMA, Z_INTERNO/2 - 1.4f); // Parede frontal central (com porta)
+    
+    // Paredes finas entre porta e paredes laterais
     desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA - 2.1f, 1.2f, -X_INTERNO/2 + 12.0f - .075f, ALTURA_PLATAFORMA + 2.1, Z_INTERNO/2 - .75f); // Parede frontal entre porta e parede esquerda
     desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA - 2.1f, 1.2f, X_INTERNO/2 - 12.0f + .075f, ALTURA_PLATAFORMA + 2.1, Z_INTERNO/2 - .75f); // Parede frontal entre porta e parede direita
-    desenha_bloco(8.3f, ESPESSURA_PAREDE, 1.2f, 0.0f, ALTURA_PLATAFORMA + PE_DIREITO_IGREJA, Z_INTERNO/2 - .75f); // Parte superior da parede frontal (acima da porta)
+    
+    // Parte superior da parede frontal (acima da porta)
+    desenha_bloco(8.3f, ESPESSURA_PAREDE, 1.2f, 0.0f, ALTURA_PLATAFORMA + PE_DIREITO_IGREJA, Z_INTERNO/2 - .75f);
+    glDisable(GL_TEXTURE_2D);
 
 }
