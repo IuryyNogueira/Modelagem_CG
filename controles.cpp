@@ -217,7 +217,7 @@ void atualiza_movimento() {
         // Detecção de colisão com as paredes
         // APENAS verifica colisão se você JÁ está na área da igreja ou perto dela
         bool colisao = false;
-        float margem = 0.5f; // Margem de segurança do jogador
+        float margem = 0.2f; // Margem de segurança do jogador (reduzida para mais liberdade)
         
         // Verificar se está na área relevante (dentro ou perto da igreja)
         bool na_area_igreja = (pos_x > -X_PLATAFORMA_IGREJA/2 - 5.0f && pos_x < X_PLATAFORMA_IGREJA/2 + 5.0f &&
