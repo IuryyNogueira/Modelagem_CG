@@ -2,6 +2,7 @@
 #include "texturas.h"
 #include "iluminacao.h"
 #include "skybox.h"
+#include "sombras.h"
 #include <iostream>
 
 void inicializa() {
@@ -21,8 +22,8 @@ void inicializa() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
-    // FLAT SHADING para iluminação global visível
-    glShadeModel(GL_FLAT);
+    // SMOOTH SHADING para melhor qualidade visual com shaders
+    glShadeModel(GL_SMOOTH);
     
     // Habilitar polygon offset para sombras
     glEnable(GL_POLYGON_OFFSET_FILL);
@@ -37,9 +38,18 @@ void inicializa() {
     std::cout << "Carregando texturas..." << std::endl;
     gerenciador_texturas.carregar_todas_texturas();
     
-    // Inicializar sistema de iluminação avançado com sombras
-    std::cout << "Configurando iluminação e sombras..." << std::endl;
+    // Inicializar sistema de iluminação avançado
+    std::cout << "Configurando iluminação..." << std::endl;
     sistema_iluminacao.inicializar();
+    
+    // Inicializar sistema de shadow mapping
+    std::cout << "Configurando shadow mapping..." << std::endl;
+    if (!sistema_sombras.inicializar(2048, 2048)) {
+        std::cerr << "AVISO: Shadow mapping não pode ser inicializado. Continuando sem sombras." << std::endl;
+    }
+    
+    // Configurar luz para shadow mapping (sincronizar com luz do sol)
+    sistema_sombras.configurar_luz(50.0f, 80.0f, 50.0f, 0.0f, 0.0f, 0.0f);
     
     // Inicializar skybox
     std::cout << "Carregando skybox..." << std::endl;

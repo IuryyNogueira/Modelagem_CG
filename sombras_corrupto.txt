@@ -1,0 +1,1790 @@
+#include "sombras.h"#include "sombras.h"#include "sombras.h"#include "sombras.h"
+
+#include "interior.h"
+
+#include "parede.h"#include "interior.h"
+
+#include "constantes.h"
+
+#include <iostream>#include "parede.h"#include "interior.h"#include "interior.h"
+
+#include <fstream>
+
+#include <sstream>#include "telhado.h"
+
+#include <cstring>
+
+#include <GL/glut.h>#include "escada.h"#include "parede.h"#include "parede.h"
+
+
+
+SistemaSombras sistema_sombras;#include "arco.h"
+
+
+
+SistemaSombras::SistemaSombras() {#include "janela.h"#include "telhado.h"#include "telhado.h"
+
+    fbo_shadow = 0;
+
+    texture_shadow = 0;#include "constantes.h"
+
+    rbo_depth = 0;
+
+    shadow_map_width = 2048;#include <iostream>#include "escada.h"#include "escada.h"
+
+    shadow_map_height = 2048;
+
+    #include <fstream>
+
+    shader_shadow_program = 0;
+
+    shader_scene_program = 0;#include <sstream>#include "arco.h"#include "arco.h"
+
+    vertex_shader_shadow = 0;
+
+    fragment_shader_shadow = 0;#include <cstring>
+
+    vertex_shader_scene = 0;
+
+    fragment_shader_scene = 0;#include <GL/glut.h>#include "janela.h"#include "janela.h"
+
+    
+
+    shadow_bias = 0.005f;
+
+    shadow_intensity = 0.7f;
+
+    shadow_mapping_enabled = false; // Desabilitado por padrão até inicializar com sucessoSistemaSombras sistema_sombras;#include "constantes.h"#include "constantes.h"
+
+    
+
+    light_position[0] = 50.0f;
+
+    light_position[1] = 80.0f;
+
+    light_position[2] = 50.0f;SistemaSombras::SistemaSombras() {#include <iostream>#include <iostream>
+
+    
+
+    light_target[0] = 0.0f;    fbo_shadow = 0;
+
+    light_target[1] = 0.0f;
+
+    light_target[2] = 0.0f;    texture_shadow = 0;#include <fstream>#include <fstream>
+
+    
+
+    memset(light_projection_matrix, 0, sizeof(light_projection_matrix));    rbo_depth = 0;
+
+    memset(light_view_matrix, 0, sizeof(light_view_matrix));
+
+    memset(shadow_matrix, 0, sizeof(shadow_matrix));    shadow_map_width = 2048;#include <sstream>#include <sstream>
+
+    
+
+    memset(bias_matrix, 0, sizeof(bias_matrix));    shadow_map_height = 2048;
+
+    bias_matrix[0] = 0.5f; bias_matrix[5] = 0.5f; bias_matrix[10] = 0.5f;
+
+    bias_matrix[12] = 0.5f; bias_matrix[13] = 0.5f; bias_matrix[14] = 0.5f;    #include <cstring>#include <cstring>
+
+    bias_matrix[15] = 1.0f;
+
+}    shader_shadow_program = 0;
+
+
+
+SistemaSombras::~SistemaSombras() {    shader_scene_program = 0;#include <GL/glut.h>#include <GL/glut.h>
+
+    finalizar();
+
+}    vertex_shader_shadow = 0;
+
+
+
+bool SistemaSombras::carregar_shader(const char* filename, std::string& source) {    fragment_shader_shadow = 0;
+
+    std::ifstream file(filename);
+
+    if (!file.is_open()) {    vertex_shader_scene = 0;
+
+        return false;
+
+    }    fragment_shader_scene = 0;SistemaSombras sistema_sombras;SistemaSombras sistema_sombras;
+
+    
+
+    std::stringstream buffer;    
+
+    buffer << file.rdbuf();
+
+    source = buffer.str();    shadow_bias = 0.005f;
+
+    file.close();
+
+        shadow_intensity = 0.7f;
+
+    return true;
+
+}    shadow_mapping_enabled = true;SistemaSombras::SistemaSombras() {SistemaSombras::SistemaSombras() {
+
+
+
+GLuint SistemaSombras::compilar_shader(GLenum type, const char* source) {    
+
+    GLuint shader = glCreateShader(type);
+
+    glShaderSource(shader, 1, &source, NULL);    // Posição inicial da luz (sol)    fbo_shadow = 0;    fbo_shadow = 0;
+
+    glCompileShader(shader);
+
+        light_position[0] = 50.0f;
+
+    GLint success;
+
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);    light_position[1] = 80.0f;    texture_shadow = 0;    texture_shadow = 0;
+
+    if (!success) {
+
+        char infoLog[512];    light_position[2] = 50.0f;
+
+        glGetShaderInfoLog(shader, 512, NULL, infoLog);
+
+        std::cerr << "Erro na compilação do shader:\n" << infoLog << std::endl;        rbo_depth = 0;    rbo_depth = 0;
+
+        return 0;
+
+    }    light_target[0] = 0.0f;
+
+    
+
+    return shader;    light_target[1] = 0.0f;    shadow_map_width = 2048;    shadow_map_width = 2048;
+
+}
+
+    light_target[2] = 0.0f;
+
+GLuint SistemaSombras::criar_programa_shader(GLuint vertex_shader, GLuint fragment_shader) {
+
+    GLuint program = glCreateProgram();        shadow_map_height = 2048;    shadow_map_height = 2048;
+
+    glAttachShader(program, vertex_shader);
+
+    glAttachShader(program, fragment_shader);    // Inicializar matrizes como identidade
+
+    glLinkProgram(program);
+
+        memset(light_projection_matrix, 0, sizeof(light_projection_matrix));        
+
+    GLint success;
+
+    glGetProgramiv(program, GL_LINK_STATUS, &success);    memset(light_view_matrix, 0, sizeof(light_view_matrix));
+
+    if (!success) {
+
+        char infoLog[512];    memset(shadow_matrix, 0, sizeof(shadow_matrix));    shader_shadow_program = 0;    shader_shadow_program = 0;
+
+        glGetProgramInfoLog(program, 512, NULL, infoLog);
+
+        std::cerr << "Erro na linkagem do programa shader:\n" << infoLog << std::endl;    
+
+        return 0;
+
+    }    // Matriz de bias para converter [-1,1] para [0,1]    shader_scene_program = 0;    shader_scene_program = 0;
+
+    
+
+    return program;    memset(bias_matrix, 0, sizeof(bias_matrix));
+
+}
+
+    bias_matrix[0] = 0.5f; bias_matrix[5] = 0.5f; bias_matrix[10] = 0.5f;    vertex_shader_shadow = 0;    vertex_shader_shadow = 0;
+
+bool SistemaSombras::inicializar(int width, int height) {
+
+    std::cout << "=== Inicializando Shadow Mapping ===" << std::endl;    bias_matrix[12] = 0.5f; bias_matrix[13] = 0.5f; bias_matrix[14] = 0.5f;
+
+    
+
+    shadow_map_width = width;    bias_matrix[15] = 1.0f;    fragment_shader_shadow = 0;    fragment_shader_shadow = 0;
+
+    shadow_map_height = height;
+
+    }
+
+    // Tentar criar FBO e textura
+
+    glGenTextures(1, &texture_shadow);    vertex_shader_scene = 0;    vertex_shader_scene = 0;
+
+    glBindTexture(GL_TEXTURE_2D, texture_shadow);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SistemaSombras::~SistemaSombras() {
+
+                 shadow_map_width, shadow_map_height, 0, 
+
+                 GL_DEPTH_COMPONENT, GL_FLOAT, NULL);    finalizar();    fragment_shader_scene = 0;    fragment_shader_scene = 0;
+
+    
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);}
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);        
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    bool SistemaSombras::carregar_shader(const char* filename, std::string& source) {
+
+    // Tentar criar FBO
+
+    glGenFramebuffersEXT(1, &fbo_shadow);    std::ifstream file(filename);    shadow_bias = 0.005f;    shadow_bias = 0.005f;
+
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo_shadow);
+
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,     if (!file.is_open()) {
+
+                              GL_TEXTURE_2D, texture_shadow, 0);
+
+            std::cerr << "Erro ao abrir shader: " << filename << std::endl;    shadow_intensity = 0.7f;    shadow_intensity = 0.7f;
+
+    glDrawBuffer(GL_NONE);
+
+    glReadBuffer(GL_NONE);        return false;
+
+    
+
+    GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);    }    shadow_mapping_enabled = true;    shadow_mapping_enabled = true;
+
+    if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
+
+        std::cerr << "AVISO: FBO incompleto. Shadow mapping desabilitado." << std::endl;    
+
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
+        return false;    std::stringstream buffer;        
+
+    }
+
+        buffer << file.rdbuf();
+
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
+        source = buffer.str();    // Posição inicial da luz (sol)    // Posição inicial da luz (sol)
+
+    // Tentar carregar shaders
+
+    std::string shadow_vertex_src, shadow_fragment_src;    file.close();
+
+    std::string scene_vertex_src, scene_fragment_src;
+
+            light_position[0] = 50.0f;    light_position[0] = 50.0f;
+
+    if (!carregar_shader("shaders/shadow_vertex.glsl", shadow_vertex_src) ||
+
+        !carregar_shader("shaders/shadow_fragment.glsl", shadow_fragment_src) ||    return true;
+
+        !carregar_shader("shaders/scene_vertex.glsl", scene_vertex_src) ||
+
+        !carregar_shader("shaders/scene_fragment.glsl", scene_fragment_src)) {}    light_position[1] = 80.0f;    light_position[1] = 80.0f;
+
+        std::cerr << "AVISO: Shaders não encontrados. Shadow mapping desabilitado." << std::endl;
+
+        return false;
+
+    }
+
+    GLuint SistemaSombras::compilar_shader(GLenum type, const char* source) {    light_position[2] = 50.0f;    light_position[2] = 50.0f;
+
+    // Compilar shaders
+
+    vertex_shader_shadow = compilar_shader(GL_VERTEX_SHADER, shadow_vertex_src.c_str());    GLuint shader = glCreateShader(type);
+
+    fragment_shader_shadow = compilar_shader(GL_FRAGMENT_SHADER, shadow_fragment_src.c_str());
+
+        glShaderSource(shader, 1, &source, NULL);        
+
+    if (vertex_shader_shadow == 0 || fragment_shader_shadow == 0) {
+
+        std::cerr << "AVISO: Erro ao compilar shaders de shadow map." << std::endl;    glCompileShader(shader);
+
+        return false;
+
+    }        light_target[0] = 0.0f;    light_target[0] = 0.0f;
+
+    
+
+    shader_shadow_program = criar_programa_shader(vertex_shader_shadow, fragment_shader_shadow);    // Verificar erros de compilação
+
+    if (shader_shadow_program == 0) {
+
+        return false;    GLint success;    light_target[1] = 0.0f;    light_target[1] = 0.0f;
+
+    }
+
+        glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+
+    vertex_shader_scene = compilar_shader(GL_VERTEX_SHADER, scene_vertex_src.c_str());
+
+    fragment_shader_scene = compilar_shader(GL_FRAGMENT_SHADER, scene_fragment_src.c_str());    if (!success) {    light_target[2] = 0.0f;    light_target[2] = 0.0f;
+
+    
+
+    if (vertex_shader_scene == 0 || fragment_shader_scene == 0) {        char infoLog[512];
+
+        std::cerr << "AVISO: Erro ao compilar shaders de cena." << std::endl;
+
+        return false;        glGetShaderInfoLog(shader, 512, NULL, infoLog);        
+
+    }
+
+            std::cerr << "Erro na compilação do shader:\n" << infoLog << std::endl;
+
+    shader_scene_program = criar_programa_shader(vertex_shader_scene, fragment_shader_scene);
+
+    if (shader_scene_program == 0) {        return 0;    // Inicializar matrizes como identidade    // Inicializar matrizes como identidade
+
+        return false;
+
+    }    }
+
+    
+
+    shadow_mapping_enabled = true;        memset(light_projection_matrix, 0, sizeof(light_projection_matrix));    memset(light_projection_matrix, 0, sizeof(light_projection_matrix));
+
+    std::cout << "Shadow Mapping inicializado com sucesso!" << std::endl;
+
+    std::cout << "Resolução: " << shadow_map_width << "x" << shadow_map_height << std::endl;    return shader;
+
+    
+
+    return true;}    memset(light_view_matrix, 0, sizeof(light_view_matrix));    memset(light_view_matrix, 0, sizeof(light_view_matrix));
+
+}
+
+
+
+void SistemaSombras::finalizar() {
+
+    if (fbo_shadow) {GLuint SistemaSombras::criar_programa_shader(GLuint vertex_shader, GLuint fragment_shader) {    memset(shadow_matrix, 0, sizeof(shadow_matrix));    memset(shadow_matrix, 0, sizeof(shadow_matrix));
+
+        glDeleteFramebuffersEXT(1, &fbo_shadow);
+
+        fbo_shadow = 0;    GLuint program = glCreateProgram();
+
+    }
+
+    if (texture_shadow) {    glAttachShader(program, vertex_shader);        
+
+        glDeleteTextures(1, &texture_shadow);
+
+        texture_shadow = 0;    glAttachShader(program, fragment_shader);
+
+    }
+
+    if (shader_shadow_program) {    glLinkProgram(program);    // Matriz de bias para converter [-1,1] para [0,1]    // Matriz de bias para converter [-1,1] para [0,1]
+
+        glDeleteProgram(shader_shadow_program);
+
+        shader_shadow_program = 0;    
+
+    }
+
+    if (shader_scene_program) {    // Verificar erros de linkagem    memset(bias_matrix, 0, sizeof(bias_matrix));    memset(bias_matrix, 0, sizeof(bias_matrix));
+
+        glDeleteProgram(shader_scene_program);
+
+        shader_scene_program = 0;    GLint success;
+
+    }
+
+    if (vertex_shader_shadow) glDeleteShader(vertex_shader_shadow);    glGetProgramiv(program, GL_LINK_STATUS, &success);    bias_matrix[0] = 0.5f; bias_matrix[5] = 0.5f; bias_matrix[10] = 0.5f;    bias_matrix[0] = 0.5f; bias_matrix[5] = 0.5f; bias_matrix[10] = 0.5f;
+
+    if (fragment_shader_shadow) glDeleteShader(fragment_shader_shadow);
+
+    if (vertex_shader_scene) glDeleteShader(vertex_shader_scene);    if (!success) {
+
+    if (fragment_shader_scene) glDeleteShader(fragment_shader_scene);
+
+}        char infoLog[512];    bias_matrix[12] = 0.5f; bias_matrix[13] = 0.5f; bias_matrix[14] = 0.5f;    bias_matrix[12] = 0.5f; bias_matrix[13] = 0.5f; bias_matrix[14] = 0.5f;
+
+
+
+void SistemaSombras::configurar_luz(float pos_x, float pos_y, float pos_z,        glGetProgramInfoLog(program, 512, NULL, infoLog);
+
+                                    float target_x, float target_y, float target_z) {
+
+    light_position[0] = pos_x;        std::cerr << "Erro na linkagem do programa shader:\n" << infoLog << std::endl;    bias_matrix[15] = 1.0f;    bias_matrix[15] = 1.0f;
+
+    light_position[1] = pos_y;
+
+    light_position[2] = pos_z;        return 0;
+
+    
+
+    light_target[0] = target_x;    }}}
+
+    light_target[1] = target_y;
+
+    light_target[2] = target_z;    
+
+    
+
+    calcular_matriz_luz();    return program;
+
+}
+
+}
+
+void SistemaSombras::calcular_matriz_luz() {
+
+    glMatrixMode(GL_PROJECTION);SistemaSombras::~SistemaSombras() {SistemaSombras::~SistemaSombras() {
+
+    glPushMatrix();
+
+    glLoadIdentity();bool SistemaSombras::inicializar(int width, int height) {
+
+    
+
+    float size = 100.0f;    std::cout << "=== Inicializando Shadow Mapping ===" << std::endl;    finalizar();    finalizar();
+
+    glOrtho(-size, size, -size, size, 0.1f, 300.0f);
+
+    glGetFloatv(GL_PROJECTION_MATRIX, light_projection_matrix);    
+
+    glPopMatrix();
+
+        shadow_map_width = width;}}
+
+    glMatrixMode(GL_MODELVIEW);
+
+    glPushMatrix();    shadow_map_height = height;
+
+    glLoadIdentity();
+
+    gluLookAt(light_position[0], light_position[1], light_position[2],    
+
+              light_target[0], light_target[1], light_target[2],
+
+              0.0f, 1.0f, 0.0f);    // Criar textura para shadow map
+
+    glGetFloatv(GL_MODELVIEW_MATRIX, light_view_matrix);
+
+    glPopMatrix();    glGenTextures(1, &texture_shadow);bool SistemaSombras::carregar_shader(const char* filename, std::string& source) {bool SistemaSombras::carregar_shader(const char* filename, std::string& source) {
+
+    
+
+    GLfloat temp[16];    glBindTexture(GL_TEXTURE_2D, texture_shadow);
+
+    multiplicar_matrizes(light_projection_matrix, light_view_matrix, temp);
+
+    multiplicar_matrizes(bias_matrix, temp, shadow_matrix);    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,     std::ifstream file(filename);    std::ifstream file(filename);
+
+}
+
+                 shadow_map_width, shadow_map_height, 0, 
+
+void SistemaSombras::multiplicar_matrizes(const GLfloat* a, const GLfloat* b, GLfloat* result) {
+
+    for (int i = 0; i < 4; i++) {                 GL_DEPTH_COMPONENT, GL_FLOAT, NULL);    if (!file.is_open()) {    if (!file.is_open()) {
+
+        for (int j = 0; j < 4; j++) {
+
+            result[i * 4 + j] = 0;    
+
+            for (int k = 0; k < 4; k++) {
+
+                result[i * 4 + j] += a[i * 4 + k] * b[k * 4 + j];    // Configurar parâmetros da textura        std::cerr << "Erro ao abrir shader: " << filename << std::endl;        std::cerr << "Erro ao abrir shader: " << filename << std::endl;
+
+            }
+
+        }    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    }
+
+}    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);        return false;        return false;
+
+
+
+void SistemaSombras::iniciar_render_shadow_map() {    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+    if (!shadow_mapping_enabled) return;
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);    }    }
+
+    glPushAttrib(GL_VIEWPORT_BIT | GL_ENABLE_BIT);
+
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo_shadow);    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+
+    glViewport(0, 0, shadow_map_width, shadow_map_height);
+
+    glClear(GL_DEPTH_BUFFER_BIT);    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);        
+
+    
+
+    glEnable(GL_DEPTH_TEST);    glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+
+    glDepthFunc(GL_LEQUAL);
+
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);        std::stringstream buffer;    std::stringstream buffer;
+
+    glEnable(GL_POLYGON_OFFSET_FILL);
+
+    glPolygonOffset(2.0f, 4.0f);    // Criar FBO
+
+    glDisable(GL_LIGHTING);
+
+    glDisable(GL_TEXTURE_2D);    glGenFramebuffersEXT(1, &fbo_shadow);    buffer << file.rdbuf();    buffer << file.rdbuf();
+
+    
+
+    glMatrixMode(GL_PROJECTION);    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo_shadow);
+
+    glPushMatrix();
+
+    glLoadMatrixf(light_projection_matrix);        source = buffer.str();    source = buffer.str();
+
+    
+
+    glMatrixMode(GL_MODELVIEW);    // Anexar textura de profundidade ao FBO
+
+    glPushMatrix();
+
+    glLoadMatrixf(light_view_matrix);    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,     file.close();    file.close();
+
+    
+
+    glUseProgram(shader_shadow_program);                              GL_TEXTURE_2D, texture_shadow, 0);
+
+}
+
+            
+
+void SistemaSombras::finalizar_render_shadow_map() {
+
+    if (!shadow_mapping_enabled) return;    // Não precisamos de cor, apenas depth
+
+    
+
+    glUseProgram(0);    glDrawBuffer(GL_NONE);    return true;    return true;
+
+    glMatrixMode(GL_PROJECTION);
+
+    glPopMatrix();    glReadBuffer(GL_NONE);
+
+    glMatrixMode(GL_MODELVIEW);
+
+    glPopMatrix();    }}
+
+    glDisable(GL_POLYGON_OFFSET_FILL);
+
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);    // Verificar se FBO está completo
+
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
+    glPopAttrib();    GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+
+}
+
+    if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
+
+void SistemaSombras::iniciar_render_cena() {
+
+    if (!shadow_mapping_enabled) return;        std::cerr << "Erro: FBO incompleto! Status: " << status << std::endl;GLuint SistemaSombras::compilar_shader(GLenum type, const char* source) {GLuint SistemaSombras::compilar_shader(GLenum type, const char* source) {
+
+    
+
+    glUseProgram(shader_scene_program);        return false;
+
+    
+
+    GLint shadowMapLoc = glGetUniformLocation(shader_scene_program, "shadowMap");    }    GLuint shader = glCreateShader(type);    GLuint shader = glCreateShader(type);
+
+    GLint shadowMatrixLoc = glGetUniformLocation(shader_scene_program, "shadowMatrix");
+
+    GLint shadowBiasLoc = glGetUniformLocation(shader_scene_program, "shadowBias");    
+
+    GLint shadowIntensityLoc = glGetUniformLocation(shader_scene_program, "shadowIntensity");
+
+        glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);    glShaderSource(shader, 1, &source, NULL);    glShaderSource(shader, 1, &source, NULL);
+
+    glActiveTexture(GL_TEXTURE7);
+
+    glBindTexture(GL_TEXTURE_2D, texture_shadow);    
+
+    glUniform1i(shadowMapLoc, 7);
+
+    glUniformMatrix4fv(shadowMatrixLoc, 1, GL_FALSE, shadow_matrix);    // Carregar e compilar shaders    glCompileShader(shader);    glCompileShader(shader);
+
+    glUniform1f(shadowBiasLoc, shadow_bias);
+
+    glUniform1f(shadowIntensityLoc, shadow_intensity);    std::string shadow_vertex_src, shadow_fragment_src;
+
+    glActiveTexture(GL_TEXTURE0);
+
+}    std::string scene_vertex_src, scene_fragment_src;        
+
+
+
+void SistemaSombras::finalizar_render_cena() {    
+
+    if (!shadow_mapping_enabled) return;
+
+    glUseProgram(0);    if (!carregar_shader("shaders/shadow_vertex.glsl", shadow_vertex_src) ||    // Verificar erros de compilação    // Verificar erros de compilação
+
+}
+
+        !carregar_shader("shaders/shadow_fragment.glsl", shadow_fragment_src) ||
+
+void SistemaSombras::desenhar_geometria_shadow_map() {
+
+    // Plataforma        !carregar_shader("shaders/scene_vertex.glsl", scene_vertex_src) ||    GLint success;    GLint success;
+
+    glPushMatrix();
+
+    glTranslatef(0.0f, ALTURA_PLATAFORMA / 2.0f, 0.0f);        !carregar_shader("shaders/scene_fragment.glsl", scene_fragment_src)) {
+
+    glScalef(X_PLATAFORMA, ALTURA_PLATAFORMA, Z_PLATAFORMA);
+
+    glutSolidCube(1.0);        std::cerr << "Erro ao carregar shaders. Shadow mapping desabilitado." << std::endl;    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+
+    glPopMatrix();
+
+            shadow_mapping_enabled = false;
+
+    // Paredes simplificadas
+
+    glPushMatrix();        return false;    if (!success) {    if (!success) {
+
+    glTranslatef(-LARGURA_PAREDE_LATERAL / 2.0f, ALTURA_PLATAFORMA + PE_DIREITO_IGREJA / 2.0f, 0.0f);
+
+    glScalef(ESPESSURA_PAREDE, PE_DIREITO_IGREJA, Z_INTERNO);    }
+
+    glutSolidCube(1.0);
+
+    glPopMatrix();            char infoLog[512];        char infoLog[512];
+
+    
+
+    glPushMatrix();    // Compilar shaders de shadow map
+
+    glTranslatef(LARGURA_PAREDE_LATERAL / 2.0f, ALTURA_PLATAFORMA + PE_DIREITO_IGREJA / 2.0f, 0.0f);
+
+    glScalef(ESPESSURA_PAREDE, PE_DIREITO_IGREJA, Z_INTERNO);    vertex_shader_shadow = compilar_shader(GL_VERTEX_SHADER, shadow_vertex_src.c_str());        glGetShaderInfoLog(shader, 512, NULL, infoLog);        glGetShaderInfoLog(shader, 512, NULL, infoLog);
+
+    glutSolidCube(1.0);
+
+    glPopMatrix();    fragment_shader_shadow = compilar_shader(GL_FRAGMENT_SHADER, shadow_fragment_src.c_str());
+
+    
+
+    glPushMatrix();            std::cerr << "Erro na compilação do shader:\n" << infoLog << std::endl;        std::cerr << "Erro na compilação do shader:\n" << infoLog << std::endl;
+
+    glTranslatef(0.0f, ALTURA_PLATAFORMA + PE_DIREITO_IGREJA / 2.0f, Z_INTERNO / 2.0f);
+
+    glScalef(LARGURA_PAREDE_LATERAL, PE_DIREITO_IGREJA, ESPESSURA_PAREDE);    if (vertex_shader_shadow == 0 || fragment_shader_shadow == 0) {
+
+    glutSolidCube(1.0);
+
+    glPopMatrix();        std::cerr << "Erro ao compilar shaders de shadow map" << std::endl;        return 0;        return 0;
+
+    
+
+    glPushMatrix();        shadow_mapping_enabled = false;
+
+    glTranslatef(0.0f, ALTURA_PLATAFORMA + PE_DIREITO_IGREJA / 2.0f, -Z_INTERNO / 2.0f);
+
+    glScalef(LARGURA_PAREDE_LATERAL, PE_DIREITO_IGREJA, ESPESSURA_PAREDE);        return false;    }    }
+
+    glutSolidCube(1.0);
+
+    glPopMatrix();    }
+
+    
+
+    // Bancos            
+
+    for(int i = 0; i < 8; i++) {
+
+        glPushMatrix();    shader_shadow_program = criar_programa_shader(vertex_shader_shadow, fragment_shader_shadow);
+
+        glTranslatef(-8.0f, ALTURA_PLATAFORMA + 0.9f, 15.0f - i * 4.0f);
+
+        glScalef(3.8f, 1.8f, 2.3f);    if (shader_shadow_program == 0) {    return shader;    return shader;
+
+        glutSolidCube(1.0);
+
+        glPopMatrix();        std::cerr << "Erro ao criar programa de shadow map" << std::endl;
+
+        
+
+        glPushMatrix();        shadow_mapping_enabled = false;}}
+
+        glTranslatef(8.0f, ALTURA_PLATAFORMA + 0.9f, 15.0f - i * 4.0f);
+
+        glScalef(3.8f, 1.8f, 2.3f);        return false;
+
+        glutSolidCube(1.0);
+
+        glPopMatrix();    }
+
+    }
+
+        
+
+    // Altar
+
+    glPushMatrix();    // Compilar shaders de cenaGLuint SistemaSombras::criar_programa_shader(GLuint vertex_shader, GLuint fragment_shader) {GLuint SistemaSombras::criar_programa_shader(GLuint vertex_shader, GLuint fragment_shader) {
+
+    glTranslatef(0.0f, ALTURA_PLATAFORMA + 2.5f, -35.0f);
+
+    glScalef(9.0f, 3.5f, 4.5f);    vertex_shader_scene = compilar_shader(GL_VERTEX_SHADER, scene_vertex_src.c_str());
+
+    glutSolidCube(1.0);
+
+    glPopMatrix();    fragment_shader_scene = compilar_shader(GL_FRAGMENT_SHADER, scene_fragment_src.c_str());    GLuint program = glCreateProgram();    GLuint program = glCreateProgram();
+
+}
+
+    
+
+void SistemaSombras::desenhar_debug_shadow_map(float x, float y, float width, float height) {
+
+    if (!shadow_mapping_enabled) return;    if (vertex_shader_scene == 0 || fragment_shader_scene == 0) {    glAttachShader(program, vertex_shader);    glAttachShader(program, vertex_shader);
+
+    
+
+    glPushAttrib(GL_ALL_ATTRIB_BITS);        std::cerr << "Erro ao compilar shaders de cena" << std::endl;
+
+    glDisable(GL_LIGHTING);
+
+    glDisable(GL_DEPTH_TEST);        shadow_mapping_enabled = false;    glAttachShader(program, fragment_shader);    glAttachShader(program, fragment_shader);
+
+    
+
+    glMatrixMode(GL_PROJECTION);        return false;
+
+    glPushMatrix();
+
+    glLoadIdentity();    }    glLinkProgram(program);    glLinkProgram(program);
+
+    glOrtho(0, glutGet(GLUT_WINDOW_WIDTH), 0, glutGet(GLUT_WINDOW_HEIGHT), -1, 1);
+
+        
+
+    glMatrixMode(GL_MODELVIEW);
+
+    glPushMatrix();    shader_scene_program = criar_programa_shader(vertex_shader_scene, fragment_shader_scene);        
+
+    glLoadIdentity();
+
+        if (shader_scene_program == 0) {
+
+    glEnable(GL_TEXTURE_2D);
+
+    glBindTexture(GL_TEXTURE_2D, texture_shadow);        std::cerr << "Erro ao criar programa de cena" << std::endl;    // Verificar erros de linkagem    // Verificar erros de linkagem
+
+    glColor3f(1.0f, 1.0f, 1.0f);
+
+            shadow_mapping_enabled = false;
+
+    glBegin(GL_QUADS);
+
+    glTexCoord2f(0, 0); glVertex2f(x, y);        return false;    GLint success;    GLint success;
+
+    glTexCoord2f(1, 0); glVertex2f(x + width, y);
+
+    glTexCoord2f(1, 1); glVertex2f(x + width, y + height);    }
+
+    glTexCoord2f(0, 1); glVertex2f(x, y + height);
+
+    glEnd();        glGetProgramiv(program, GL_LINK_STATUS, &success);    glGetProgramiv(program, GL_LINK_STATUS, &success);
+
+    
+
+    glDisable(GL_TEXTURE_2D);    std::cout << "Shadow Mapping inicializado com sucesso!" << std::endl;
+
+    glPopMatrix();
+
+    glMatrixMode(GL_PROJECTION);    std::cout << "Resolução da shadow map: " << shadow_map_width << "x" << shadow_map_height << std::endl;    if (!success) {    if (!success) {
+
+    glPopMatrix();
+
+    glMatrixMode(GL_MODELVIEW);    
+
+    glPopAttrib();
+
+}    return true;        char infoLog[512];        char infoLog[512];
+
+
+}
+
+        glGetProgramInfoLog(program, 512, NULL, infoLog);        glGetProgramInfoLog(program, 512, NULL, infoLog);
+
+void SistemaSombras::finalizar() {
+
+    if (fbo_shadow) {        std::cerr << "Erro na linkagem do programa shader:\n" << infoLog << std::endl;        std::cerr << "Erro na linkagem do programa shader:\n" << infoLog << std::endl;
+
+        glDeleteFramebuffersEXT(1, &fbo_shadow);
+
+        fbo_shadow = 0;        return 0;        return 0;
+
+    }
+
+    if (texture_shadow) {    }    }
+
+        glDeleteTextures(1, &texture_shadow);
+
+        texture_shadow = 0;        
+
+    }
+
+    if (shader_shadow_program) {    return program;    return program;
+
+        glDeleteProgram(shader_shadow_program);
+
+        shader_shadow_program = 0;}}
+
+    }
+
+    if (shader_scene_program) {
+
+        glDeleteProgram(shader_scene_program);
+
+        shader_scene_program = 0;bool SistemaSombras::inicializar(int width, int height) {bool SistemaSombras::inicializar(int width, int height) {
+
+    }
+
+    if (vertex_shader_shadow) glDeleteShader(vertex_shader_shadow);    std::cout << "=== Inicializando Shadow Mapping ===" << std::endl;    std::cout << "=== Inicializando Shadow Mapping ===" << std::endl;
+
+    if (fragment_shader_shadow) glDeleteShader(fragment_shader_shadow);
+
+    if (vertex_shader_scene) glDeleteShader(vertex_shader_scene);        
+
+    if (fragment_shader_scene) glDeleteShader(fragment_shader_scene);
+
+}    shadow_map_width = width;    shadow_map_width = width;
+
+
+
+void SistemaSombras::configurar_luz(float pos_x, float pos_y, float pos_z,    shadow_map_height = height;    shadow_map_height = height;
+
+                                    float target_x, float target_y, float target_z) {
+
+    light_position[0] = pos_x;        
+
+    light_position[1] = pos_y;
+
+    light_position[2] = pos_z;    // Criar textura para shadow map    // Criar textura para shadow map
+
+    
+
+    light_target[0] = target_x;    glGenTextures(1, &texture_shadow);    glGenTextures(1, &texture_shadow);
+
+    light_target[1] = target_y;
+
+    light_target[2] = target_z;    glBindTexture(GL_TEXTURE_2D, texture_shadow);    glBindTexture(GL_TEXTURE_2D, texture_shadow);
+
+    
+
+    calcular_matriz_luz();    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 
+
+}
+
+                 shadow_map_width, shadow_map_height, 0,                  shadow_map_width, shadow_map_height, 0, 
+
+void SistemaSombras::calcular_matriz_luz() {
+
+    glPushMatrix();                 GL_DEPTH_COMPONENT, GL_FLOAT, NULL);                 GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+    glLoadIdentity();
+
+            
+
+    // Matriz de projeção da luz (ortográfica para luz direcional)
+
+    glMatrixMode(GL_PROJECTION);    // Configurar parâmetros da textura    // Configurar parâmetros da textura
+
+    glPushMatrix();
+
+    glLoadIdentity();    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+    
+
+    // Frustum ortográfico grande para cobrir toda a cena    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    float size = 100.0f;
+
+    glOrtho(-size, size, -size, size, 0.1f, 300.0f);    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+
+    glGetFloatv(GL_PROJECTION_MATRIX, light_projection_matrix);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+    glPopMatrix();
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+
+    // Matriz de visualização da luz
+
+    glMatrixMode(GL_MODELVIEW);    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+
+    glPushMatrix();
+
+    glLoadIdentity();    glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);    glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+
+    gluLookAt(light_position[0], light_position[1], light_position[2],
+
+              light_target[0], light_target[1], light_target[2],        
+
+              0.0f, 1.0f, 0.0f);
+
+    glGetFloatv(GL_MODELVIEW_MATRIX, light_view_matrix);    // Criar FBO    // Criar FBO
+
+    
+
+    glPopMatrix();    glGenFramebuffersEXT(1, &fbo_shadow);    glGenFramebuffersEXT(1, &fbo_shadow);
+
+    
+
+    // Calcular matriz combinada (bias * projection * view)    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo_shadow);    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo_shadow);
+
+    GLfloat temp[16];
+
+    multiplicar_matrizes(light_projection_matrix, light_view_matrix, temp);        
+
+    multiplicar_matrizes(bias_matrix, temp, shadow_matrix);
+
+}    // Anexar textura de profundidade ao FBO    // Anexar textura de profundidade ao FBO
+
+
+
+void SistemaSombras::multiplicar_matrizes(const GLfloat* a, const GLfloat* b, GLfloat* result) {    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT,     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, 
+
+    for (int i = 0; i < 4; i++) {
+
+        for (int j = 0; j < 4; j++) {                              GL_TEXTURE_2D, texture_shadow, 0);                              GL_TEXTURE_2D, texture_shadow, 0);
+
+            result[i * 4 + j] = 0;
+
+            for (int k = 0; k < 4; k++) {        
+
+                result[i * 4 + j] += a[i * 4 + k] * b[k * 4 + j];
+
+            }    // Não precisamos de cor, apenas depth    // Não precisamos de cor, apenas depth
+
+        }
+
+    }    glDrawBuffer(GL_NONE);    glDrawBuffer(GL_NONE);
+
+}
+
+    glReadBuffer(GL_NONE);    glReadBuffer(GL_NONE);
+
+void SistemaSombras::iniciar_render_shadow_map() {
+
+    if (!shadow_mapping_enabled) return;        
+
+    
+
+    // Salvar estado atual    // Verificar se FBO está completo    // Verificar se FBO está completo
+
+    glPushAttrib(GL_VIEWPORT_BIT | GL_ENABLE_BIT);
+
+        GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);    GLenum status = glCheckFramebufferStatusEXT(GL_FRAMEBUFFER_EXT);
+
+    // Bind FBO
+
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo_shadow);    if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {    if (status != GL_FRAMEBUFFER_COMPLETE_EXT) {
+
+    
+
+    // Configurar viewport para shadow map        std::cerr << "Erro: FBO incompleto! Status: " << status << std::endl;        std::cerr << "Erro: FBO incompleto! Status: " << status << std::endl;
+
+    glViewport(0, 0, shadow_map_width, shadow_map_height);
+
+            return false;        return false;
+
+    // Limpar depth buffer
+
+    glClear(GL_DEPTH_BUFFER_BIT);    }    }
+
+    
+
+    // Configurar estados        
+
+    glEnable(GL_DEPTH_TEST);
+
+    glDepthFunc(GL_LEQUAL);    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+            
+
+    // Polygon offset para evitar shadow acne
+
+    glEnable(GL_POLYGON_OFFSET_FILL);    // Carregar e compilar shaders    // Carregar e compilar shaders
+
+    glPolygonOffset(2.0f, 4.0f);
+
+        std::string shadow_vertex_src, shadow_fragment_src;    std::string shadow_vertex_src, shadow_fragment_src;
+
+    // Desabilitar iluminação e texturas
+
+    glDisable(GL_LIGHTING);    std::string scene_vertex_src, scene_fragment_src;    std::string scene_vertex_src, scene_fragment_src;
+
+    glDisable(GL_TEXTURE_2D);
+
+            
+
+    // Configurar matrizes da luz
+
+    glMatrixMode(GL_PROJECTION);    if (!carregar_shader("shaders/shadow_vertex.glsl", shadow_vertex_src) ||    if (!carregar_shader("shaders/shadow_vertex.glsl", shadow_vertex_src) ||
+
+    glPushMatrix();
+
+    glLoadMatrixf(light_projection_matrix);        !carregar_shader("shaders/shadow_fragment.glsl", shadow_fragment_src) ||        !carregar_shader("shaders/shadow_fragment.glsl", shadow_fragment_src) ||
+
+    
+
+    glMatrixMode(GL_MODELVIEW);        !carregar_shader("shaders/scene_vertex.glsl", scene_vertex_src) ||        !carregar_shader("shaders/scene_vertex.glsl", scene_vertex_src) ||
+
+    glPushMatrix();
+
+    glLoadMatrixf(light_view_matrix);        !carregar_shader("shaders/scene_fragment.glsl", scene_fragment_src)) {        !carregar_shader("shaders/scene_fragment.glsl", scene_fragment_src)) {
+
+    
+
+    // Usar shader simples para shadow map        std::cerr << "Erro ao carregar shaders. Shadow mapping desabilitado." << std::endl;        std::cerr << "Erro ao carregar shaders. Shadow mapping desabilitado." << std::endl;
+
+    glUseProgram(shader_shadow_program);
+
+}        shadow_mapping_enabled = false;        shadow_mapping_enabled = false;
+
+
+
+void SistemaSombras::finalizar_render_shadow_map() {        return false;        return false;
+
+    if (!shadow_mapping_enabled) return;
+
+        }    }
+
+    // Desativar shader
+
+    glUseProgram(0);        
+
+    
+
+    // Restaurar matrizes    // Compilar shaders de shadow map    // Compilar shaders de shadow map
+
+    glMatrixMode(GL_PROJECTION);
+
+    glPopMatrix();    vertex_shader_shadow = compilar_shader(GL_VERTEX_SHADER, shadow_vertex_src.c_str());    vertex_shader_shadow = compilar_shader(GL_VERTEX_SHADER, shadow_vertex_src.c_str());
+
+    glMatrixMode(GL_MODELVIEW);
+
+    glPopMatrix();    fragment_shader_shadow = compilar_shader(GL_FRAGMENT_SHADER, shadow_fragment_src.c_str());    fragment_shader_shadow = compilar_shader(GL_FRAGMENT_SHADER, shadow_fragment_src.c_str());
+
+    
+
+    // Desabilitar polygon offset        
+
+    glDisable(GL_POLYGON_OFFSET_FILL);
+
+        if (vertex_shader_shadow == 0 || fragment_shader_shadow == 0) {    if (vertex_shader_shadow == 0 || fragment_shader_shadow == 0) {
+
+    // Reabilitar color mask
+
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);        std::cerr << "Erro ao compilar shaders de shadow map" << std::endl;        std::cerr << "Erro ao compilar shaders de shadow map" << std::endl;
+
+    
+
+    // Unbind FBO        shadow_mapping_enabled = false;        shadow_mapping_enabled = false;
+
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
+            return false;        return false;
+
+    // Restaurar estado
+
+    glPopAttrib();    }    }
+
+}
+
+        
+
+void SistemaSombras::iniciar_render_cena() {
+
+    if (!shadow_mapping_enabled) return;    shader_shadow_program = criar_programa_shader(vertex_shader_shadow, fragment_shader_shadow);    shader_shadow_program = criar_programa_shader(vertex_shader_shadow, fragment_shader_shadow);
+
+    
+
+    // Usar shader de cena com sombras    if (shader_shadow_program == 0) {    if (shader_shadow_program == 0) {
+
+    glUseProgram(shader_scene_program);
+
+            std::cerr << "Erro ao criar programa de shadow map" << std::endl;        std::cerr << "Erro ao criar programa de shadow map" << std::endl;
+
+    // Configurar uniforms
+
+    GLint shadowMapLoc = glGetUniformLocation(shader_scene_program, "shadowMap");        shadow_mapping_enabled = false;        shadow_mapping_enabled = false;
+
+    GLint shadowMatrixLoc = glGetUniformLocation(shader_scene_program, "shadowMatrix");
+
+    GLint shadowBiasLoc = glGetUniformLocation(shader_scene_program, "shadowBias");        return false;        return false;
+
+    GLint shadowIntensityLoc = glGetUniformLocation(shader_scene_program, "shadowIntensity");
+
+    GLint useTextureLoc = glGetUniformLocation(shader_scene_program, "useTexture");    }    }
+
+    
+
+    // Bind shadow map texture        
+
+    glActiveTexture(GL_TEXTURE7);
+
+    glBindTexture(GL_TEXTURE_2D, texture_shadow);    // Compilar shaders de cena    // Compilar shaders de cena
+
+    glUniform1i(shadowMapLoc, 7);
+
+        vertex_shader_scene = compilar_shader(GL_VERTEX_SHADER, scene_vertex_src.c_str());    vertex_shader_scene = compilar_shader(GL_VERTEX_SHADER, scene_vertex_src.c_str());
+
+    // Enviar matriz de sombra
+
+    glUniformMatrix4fv(shadowMatrixLoc, 1, GL_FALSE, shadow_matrix);    fragment_shader_scene = compilar_shader(GL_FRAGMENT_SHADER, scene_fragment_src.c_str());    fragment_shader_scene = compilar_shader(GL_FRAGMENT_SHADER, scene_fragment_src.c_str());
+
+    
+
+    // Enviar parâmetros        
+
+    glUniform1f(shadowBiasLoc, shadow_bias);
+
+    glUniform1f(shadowIntensityLoc, shadow_intensity);    if (vertex_shader_scene == 0 || fragment_shader_scene == 0) {    if (vertex_shader_scene == 0 || fragment_shader_scene == 0) {
+
+    glUniform1i(useTextureLoc, 0);
+
+            std::cerr << "Erro ao compilar shaders de cena" << std::endl;        std::cerr << "Erro ao compilar shaders de cena" << std::endl;
+
+    // Voltar para texture unit 0
+
+    glActiveTexture(GL_TEXTURE0);        shadow_mapping_enabled = false;        shadow_mapping_enabled = false;
+
+}
+
+        return false;        return false;
+
+void SistemaSombras::finalizar_render_cena() {
+
+    if (!shadow_mapping_enabled) return;    }    }
+
+    
+
+    glUseProgram(0);        
+
+}
+
+    shader_scene_program = criar_programa_shader(vertex_shader_scene, fragment_shader_scene);    shader_scene_program = criar_programa_shader(vertex_shader_scene, fragment_shader_scene);
+
+void SistemaSombras::desenhar_geometria_shadow_map() {
+
+    // Desenhar toda a geometria da igreja para a shadow map    if (shader_scene_program == 0) {    if (shader_scene_program == 0) {
+
+    
+
+    // Plataforma        std::cerr << "Erro ao criar programa de cena" << std::endl;        std::cerr << "Erro ao criar programa de cena" << std::endl;
+
+    glPushMatrix();
+
+    glTranslatef(0.0f, ALTURA_PLATAFORMA / 2.0f, 0.0f);        shadow_mapping_enabled = false;        shadow_mapping_enabled = false;
+
+    glScalef(X_PLATAFORMA, ALTURA_PLATAFORMA, Z_PLATAFORMA);
+
+    glutSolidCube(1.0);        return false;        return false;
+
+    glPopMatrix();
+
+        }    }
+
+    // Paredes (simplificadas)
+
+    // Parede esquerda        
+
+    glPushMatrix();
+
+    glTranslatef(-LARGURA_PAREDE_LATERAL / 2.0f, ALTURA_PLATAFORMA + PE_DIREITO_IGREJA / 2.0f, 0.0f);    std::cout << "Shadow Mapping inicializado com sucesso!" << std::endl;    std::cout << "Shadow Mapping inicializado com sucesso!" << std::endl;
+
+    glScalef(ESPESSURA_PAREDE, PE_DIREITO_IGREJA, Z_INTERNO);
+
+    glutSolidCube(1.0);    std::cout << "Resolução da shadow map: " << shadow_map_width << "x" << shadow_map_height << std::endl;    std::cout << "Resolução da shadow map: " << shadow_map_width << "x" << shadow_map_height << std::endl;
+
+    glPopMatrix();
+
+            
+
+    // Parede direita
+
+    glPushMatrix();    return true;    return true;
+
+    glTranslatef(LARGURA_PAREDE_LATERAL / 2.0f, ALTURA_PLATAFORMA + PE_DIREITO_IGREJA / 2.0f, 0.0f);
+
+    glScalef(ESPESSURA_PAREDE, PE_DIREITO_IGREJA, Z_INTERNO);}}
+
+    glutSolidCube(1.0);
+
+    glPopMatrix();
+
+    
+
+    // Parede frontalvoid SistemaSombras::finalizar() {void SistemaSombras::calcular_matriz_sombra_planar(GLfloat matriz[16], 
+
+    glPushMatrix();
+
+    glTranslatef(0.0f, ALTURA_PLATAFORMA + PE_DIREITO_IGREJA / 2.0f, Z_INTERNO / 2.0f);    if (fbo_shadow) {                                                    GLfloat luz_pos[4],
+
+    glScalef(LARGURA_PAREDE_LATERAL, PE_DIREITO_IGREJA, ESPESSURA_PAREDE);
+
+    glutSolidCube(1.0);        glDeleteFramebuffersEXT(1, &fbo_shadow);                                                    GLfloat plano[4]) {
+
+    glPopMatrix();
+
+            fbo_shadow = 0;    // Plano: ax + by + cz + d = 0
+
+    // Parede traseira
+
+    glPushMatrix();    }    // luz_pos: [x, y, z, w] onde w=0 para luz direcional, w=1 para pontual
+
+    glTranslatef(0.0f, ALTURA_PLATAFORMA + PE_DIREITO_IGREJA / 2.0f, -Z_INTERNO / 2.0f);
+
+    glScalef(LARGURA_PAREDE_LATERAL, PE_DIREITO_IGREJA, ESPESSURA_PAREDE);    if (texture_shadow) {    
+
+    glutSolidCube(1.0);
+
+    glPopMatrix();        glDeleteTextures(1, &texture_shadow);    GLfloat a = plano[0];
+
+    
+
+    // Bancos internos        texture_shadow = 0;    GLfloat b = plano[1];
+
+    for(int i = 0; i < 8; i++) {
+
+        // Lado esquerdo    }    GLfloat c = plano[2];
+
+        glPushMatrix();
+
+        glTranslatef(-8.0f, ALTURA_PLATAFORMA + 0.9f, 15.0f - i * 4.0f);    if (shader_shadow_program) {    GLfloat d = plano[3];
+
+        glScalef(3.8f, 1.8f, 2.3f);
+
+        glutSolidCube(1.0);        glDeleteProgram(shader_shadow_program);    
+
+        glPopMatrix();
+
+                shader_shadow_program = 0;    GLfloat lx = luz_pos[0];
+
+        // Lado direito
+
+        glPushMatrix();    }    GLfloat ly = luz_pos[1];
+
+        glTranslatef(8.0f, ALTURA_PLATAFORMA + 0.9f, 15.0f - i * 4.0f);
+
+        glScalef(3.8f, 1.8f, 2.3f);    if (shader_scene_program) {    GLfloat lz = luz_pos[2];
+
+        glutSolidCube(1.0);
+
+        glPopMatrix();        glDeleteProgram(shader_scene_program);    GLfloat lw = luz_pos[3];
+
+    }
+
+            shader_scene_program = 0;    
+
+    // Altar
+
+    glPushMatrix();    }    // dot = a*lx + b*ly + c*lz + d*lw
+
+    glTranslatef(0.0f, ALTURA_PLATAFORMA + 2.5f, -35.0f);
+
+    glScalef(9.0f, 3.5f, 4.5f);    if (vertex_shader_shadow) glDeleteShader(vertex_shader_shadow);    GLfloat dot = a * lx + b * ly + c * lz + d * lw;
+
+    glutSolidCube(1.0);
+
+    glPopMatrix();    if (fragment_shader_shadow) glDeleteShader(fragment_shader_shadow);    
+
+}
+
+    if (vertex_shader_scene) glDeleteShader(vertex_shader_scene);    // Construir matriz de projeção de sombra
+
+void SistemaSombras::desenhar_debug_shadow_map(float x, float y, float width, float height) {
+
+    if (!shadow_mapping_enabled) return;    if (fragment_shader_scene) glDeleteShader(fragment_shader_scene);    matriz[0]  = dot - a * lx;
+
+    
+
+    // Salvar estado}    matriz[1]  = -b * lx;
+
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+        matriz[2]  = -c * lx;
+
+    // Desabilitar iluminação
+
+    glDisable(GL_LIGHTING);void SistemaSombras::configurar_luz(float pos_x, float pos_y, float pos_z,    matriz[3]  = -d * lx;
+
+    glDisable(GL_DEPTH_TEST);
+
+                                        float target_x, float target_y, float target_z) {    
+
+    // Configurar projeção ortográfica
+
+    glMatrixMode(GL_PROJECTION);    light_position[0] = pos_x;    matriz[4]  = -a * ly;
+
+    glPushMatrix();
+
+    glLoadIdentity();    light_position[1] = pos_y;    matriz[5]  = dot - b * ly;
+
+    glOrtho(0, glutGet(GLUT_WINDOW_WIDTH), 0, glutGet(GLUT_WINDOW_HEIGHT), -1, 1);
+
+        light_position[2] = pos_z;    matriz[6]  = -c * ly;
+
+    glMatrixMode(GL_MODELVIEW);
+
+    glPushMatrix();        matriz[7]  = -d * ly;
+
+    glLoadIdentity();
+
+        light_target[0] = target_x;    
+
+    // Desenhar quad com a shadow map
+
+    glEnable(GL_TEXTURE_2D);    light_target[1] = target_y;    matriz[8]  = -a * lz;
+
+    glBindTexture(GL_TEXTURE_2D, texture_shadow);
+
+    glColor3f(1.0f, 1.0f, 1.0f);    light_target[2] = target_z;    matriz[9]  = -b * lz;
+
+    
+
+    glBegin(GL_QUADS);        matriz[10] = dot - c * lz;
+
+        glTexCoord2f(0, 0); glVertex2f(x, y);
+
+        glTexCoord2f(1, 0); glVertex2f(x + width, y);    calcular_matriz_luz();    matriz[11] = -d * lz;
+
+        glTexCoord2f(1, 1); glVertex2f(x + width, y + height);
+
+        glTexCoord2f(0, 1); glVertex2f(x, y + height);}    
+
+    glEnd();
+
+        matriz[12] = -a * lw;
+
+    glDisable(GL_TEXTURE_2D);
+
+    void SistemaSombras::calcular_matriz_luz() {    matriz[13] = -b * lw;
+
+    // Restaurar matrizes
+
+    glPopMatrix();    glPushMatrix();    matriz[14] = -c * lw;
+
+    glMatrixMode(GL_PROJECTION);
+
+    glPopMatrix();    glLoadIdentity();    matriz[15] = dot - d * lw;
+
+    glMatrixMode(GL_MODELVIEW);
+
+        }
+
+    // Restaurar estado
+
+    glPopAttrib();    // Matriz de projeção da luz (ortográfica para luz direcional)
+
+}
+
+    glMatrixMode(GL_PROJECTION);void SistemaSombras::iniciar_sombra_chao(GLfloat luz_pos[4]) {
+
+    glPushMatrix();    // Plano do chão interno: y = 1.6 (altura do piso da igreja)
+
+    glLoadIdentity();    GLfloat plano_chao[4] = {0.0f, 1.0f, 0.0f, -1.6f};
+
+        calcular_matriz_sombra_planar(matriz_sombra_chao, luz_pos, plano_chao);
+
+    // Frustum ortográfico grande para cobrir toda a cena    
+
+    float size = 100.0f;    // Configurar estado OpenGL para sombras
+
+    glOrtho(-size, size, -size, size, 0.1f, 300.0f);    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+    glGetFloatv(GL_PROJECTION_MATRIX, light_projection_matrix);    
+
+        glDisable(GL_LIGHTING);
+
+    glPopMatrix();    glDisable(GL_TEXTURE_2D);
+
+        glEnable(GL_DEPTH_TEST); // Habilitar depth test para evitar bugs
+
+    // Matriz de visualização da luz    glDepthMask(GL_FALSE); // Mas não escrever no depth buffer
+
+    glMatrixMode(GL_MODELVIEW);    
+
+    glPushMatrix();    glEnable(GL_BLEND);
+
+    glLoadIdentity();    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    gluLookAt(light_position[0], light_position[1], light_position[2],    
+
+              light_target[0], light_target[1], light_target[2],    // Sombra mais suave e sutil
+
+              0.0f, 1.0f, 0.0f);    GLfloat cor_sombra_suave[4] = {0.0f, 0.0f, 0.0f, 0.25f};
+
+    glGetFloatv(GL_MODELVIEW_MATRIX, light_view_matrix);    glColor4fv(cor_sombra_suave);
+
+        
+
+    glPopMatrix();    // Usar polygon offset para evitar z-fighting
+
+        glEnable(GL_POLYGON_OFFSET_FILL);
+
+    // Calcular matriz combinada (bias * projection * view)    glPolygonOffset(-1.0f, -1.0f);
+
+    GLfloat temp[16];    
+
+    multiplicar_matrizes(light_projection_matrix, light_view_matrix, temp);    glPushMatrix();
+
+    multiplicar_matrizes(bias_matrix, temp, shadow_matrix);    glMultMatrixf(matriz_sombra_chao);
+
+}}
+
+
+
+void SistemaSombras::multiplicar_matrizes(const GLfloat* a, const GLfloat* b, GLfloat* result) {void SistemaSombras::iniciar_sombra_plataforma(GLfloat luz_pos[4]) {
+
+    for (int i = 0; i < 4; i++) {    // Plano da plataforma: y = 1.51 (topo da plataforma)
+
+        for (int j = 0; j < 4; j++) {    GLfloat plano_plataforma[4] = {0.0f, 1.0f, 0.0f, -1.51f};
+
+            result[i * 4 + j] = 0;    calcular_matriz_sombra_planar(matriz_sombra_plataforma, luz_pos, plano_plataforma);
+
+            for (int k = 0; k < 4; k++) {    
+
+                result[i * 4 + j] += a[i * 4 + k] * b[k * 4 + j];    // Configurar estado OpenGL para sombras
+
+            }    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+        }    
+
+    }    glDisable(GL_LIGHTING);
+
+}    glDisable(GL_TEXTURE_2D);
+
+    glDisable(GL_DEPTH_TEST);
+
+void SistemaSombras::iniciar_render_shadow_map() {    
+
+    if (!shadow_mapping_enabled) return;    glEnable(GL_BLEND);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Salvar estado atual    
+
+    glPushAttrib(GL_VIEWPORT_BIT | GL_ENABLE_BIT);    glColor4fv(cor_sombra);
+
+        
+
+    // Bind FBO    glPushMatrix();
+
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fbo_shadow);    glMultMatrixf(matriz_sombra_plataforma);
+
+    }
+
+    // Configurar viewport para shadow map
+
+    glViewport(0, 0, shadow_map_width, shadow_map_height);void SistemaSombras::finalizar_sombra() {
+
+        glPopMatrix();
+
+    // Limpar depth buffer    glDisable(GL_POLYGON_OFFSET_FILL);
+
+    glClear(GL_DEPTH_BUFFER_BIT);    glDepthMask(GL_TRUE);
+
+        glPopAttrib();
+
+    // Configurar estados}
+
+    glEnable(GL_DEPTH_TEST);
+
+    glDepthFunc(GL_LEQUAL);void SistemaSombras::desenhar_sombras_interiores() {
+
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);    // Desenhar geometria simplificada dos objetos internos
+
+        // (as sombras serão projetadas pela matriz ativa)
+
+    // Polygon offset para evitar shadow acne    
+
+    glEnable(GL_POLYGON_OFFSET_FILL);    // Bancos (8 de cada lado) - sombras mais suaves e corretas
+
+    glPolygonOffset(2.0f, 4.0f);    for(int i = 0; i < 8; i++) {
+
+            // Lado esquerdo
+
+    // Desabilitar iluminação e texturas        glPushMatrix();
+
+    glDisable(GL_LIGHTING);        glTranslatef(-8.0f, 1.6f, 15.0f - i * 4.0f);
+
+    glDisable(GL_TEXTURE_2D);        glScalef(3.8f, 1.8f, 2.3f);
+
+            glutSolidCube(1.0);
+
+    // Configurar matrizes da luz        glPopMatrix();
+
+    glMatrixMode(GL_PROJECTION);        
+
+    glPushMatrix();        // Lado direito
+
+    glLoadMatrixf(light_projection_matrix);        glPushMatrix();
+
+            glTranslatef(8.0f, 1.6f, 15.0f - i * 4.0f);
+
+    glMatrixMode(GL_MODELVIEW);        glScalef(3.8f, 1.8f, 2.3f);
+
+    glPushMatrix();        glutSolidCube(1.0);
+
+    glLoadMatrixf(light_view_matrix);        glPopMatrix();
+
+        }
+
+    // Usar shader simples para shadow map    
+
+    glUseProgram(shader_shadow_program);    // Altar - sombra mais definida
+
+}    glPushMatrix();
+
+    glTranslatef(0.0f, 2.5f, -35.0f);
+
+void SistemaSombras::finalizar_render_shadow_map() {    glScalef(9.0f, 3.5f, 4.5f);
+
+    if (!shadow_mapping_enabled) return;    glutSolidCube(1.0);
+
+        glPopMatrix();
+
+    // Desativar shader    
+
+    glUseProgram(0);    // Velas (3 no altar) - sombras finas
+
+        float posicoes_velas[][2] = {
+
+    // Restaurar matrizes        {-4.0f, -35.0f},  // Esquerda
+
+    glMatrixMode(GL_PROJECTION);        {0.0f, -35.0f},   // Centro
+
+    glPopMatrix();        {4.0f, -35.0f}    // Direita
+
+    glMatrixMode(GL_MODELVIEW);    };
+
+    glPopMatrix();    
+
+        for(int i = 0; i < 3; i++) {
+
+    // Desabilitar polygon offset        glPushMatrix();
+
+    glDisable(GL_POLYGON_OFFSET_FILL);        glTranslatef(posicoes_velas[i][0], 4.5f, posicoes_velas[i][1]);
+
+            glScalef(0.25f, 1.2f, 0.25f);
+
+    // Reabilitar color mask        glutSolidCube(1.0);
+
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);        glPopMatrix();
+
+        }
+
+    // Unbind FBO}
+
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
+    void SistemaSombras::desenhar_sombras_exteriores() {
+
+    // Restaurar estado    // Sombras simplificadas da estrutura externa da igreja na plataforma
+
+    glPopAttrib();    
+
+}    // Paredes laterais principais
+
+    for(int lado = -1; lado <= 1; lado += 2) {
+
+void SistemaSombras::iniciar_render_cena() {        glPushMatrix();
+
+    if (!shadow_mapping_enabled) return;        glTranslatef(lado * 12.0f, 8.0f, 0.0f);
+
+            glScalef(2.0f, 14.0f, 40.0f);
+
+    // Usar shader de cena com sombras        glutSolidCube(1.0);
+
+    glUseProgram(shader_scene_program);        glPopMatrix();
+
+        }
+
+    // Configurar uniforms    
+
+    GLint shadowMapLoc = glGetUniformLocation(shader_scene_program, "shadowMap");    // Parede frontal
+
+    GLint shadowMatrixLoc = glGetUniformLocation(shader_scene_program, "shadowMatrix");    glPushMatrix();
+
+    GLint shadowBiasLoc = glGetUniformLocation(shader_scene_program, "shadowBias");    glTranslatef(0.0f, 8.0f, 22.0f);
+
+    GLint shadowIntensityLoc = glGetUniformLocation(shader_scene_program, "shadowIntensity");    glScalef(24.0f, 14.0f, 2.0f);
+
+    GLint useTextureLoc = glGetUniformLocation(shader_scene_program, "useTexture");    glutSolidCube(1.0);
+
+        glPopMatrix();
+
+    // Bind shadow map texture    
+
+    glActiveTexture(GL_TEXTURE7);    // Parede traseira
+
+    glBindTexture(GL_TEXTURE_2D, texture_shadow);    glPushMatrix();
+
+    glUniform1i(shadowMapLoc, 7);    glTranslatef(0.0f, 8.0f, -38.0f);
+
+        glScalef(24.0f, 14.0f, 2.0f);
+
+    // Enviar matriz de sombra    glutSolidCube(1.0);
+
+    glUniformMatrix4fv(shadowMatrixLoc, 1, GL_FALSE, shadow_matrix);    glPopMatrix();
+
+    }
+
+    // Enviar parâmetros
+    glUniform1f(shadowBiasLoc, shadow_bias);
+    glUniform1f(shadowIntensityLoc, shadow_intensity);
+    glUniform1i(useTextureLoc, 0); // Por padrão sem textura, será ativado quando necessário
+    
+    // Voltar para texture unit 0
+    glActiveTexture(GL_TEXTURE0);
+}
+
+void SistemaSombras::finalizar_render_cena() {
+    if (!shadow_mapping_enabled) return;
+    
+    glUseProgram(0);
+}
+
+void SistemaSombras::desenhar_geometria_shadow_map() {
+    // Desenhar toda a geometria da igreja para a shadow map
+    
+    // Plataforma
+    glPushMatrix();
+    glTranslatef(0.0f, ALTURA_PLATAFORMA / 2.0f, 0.0f);
+    glScalef(X_PLATAFORMA, ALTURA_PLATAFORMA, Z_PLATAFORMA);
+    glutSolidCube(1.0);
+    glPopMatrix();
+    
+    // Paredes (simplificadas)
+    // Parede esquerda
+    glPushMatrix();
+    glTranslatef(-LARGURA_PAREDE_LATERAL / 2.0f, ALTURA_PLATAFORMA + PE_DIREITO_IGREJA / 2.0f, 0.0f);
+    glScalef(ESPESSURA_PAREDE, PE_DIREITO_IGREJA, Z_INTERNO);
+    glutSolidCube(1.0);
+    glPopMatrix();
+    
+    // Parede direita
+    glPushMatrix();
+    glTranslatef(LARGURA_PAREDE_LATERAL / 2.0f, ALTURA_PLATAFORMA + PE_DIREITO_IGREJA / 2.0f, 0.0f);
+    glScalef(ESPESSURA_PAREDE, PE_DIREITO_IGREJA, Z_INTERNO);
+    glutSolidCube(1.0);
+    glPopMatrix();
+    
+    // Parede frontal
+    glPushMatrix();
+    glTranslatef(0.0f, ALTURA_PLATAFORMA + PE_DIREITO_IGREJA / 2.0f, Z_INTERNO / 2.0f);
+    glScalef(LARGURA_PAREDE_LATERAL, PE_DIREITO_IGREJA, ESPESSURA_PAREDE);
+    glutSolidCube(1.0);
+    glPopMatrix();
+    
+    // Parede traseira
+    glPushMatrix();
+    glTranslatef(0.0f, ALTURA_PLATAFORMA + PE_DIREITO_IGREJA / 2.0f, -Z_INTERNO / 2.0f);
+    glScalef(LARGURA_PAREDE_LATERAL, PE_DIREITO_IGREJA, ESPESSURA_PAREDE);
+    glutSolidCube(1.0);
+    glPopMatrix();
+    
+    // Bancos internos (simplificados)
+    for(int i = 0; i < 8; i++) {
+        // Lado esquerdo
+        glPushMatrix();
+        glTranslatef(-8.0f, ALTURA_PLATAFORMA + 0.9f, 15.0f - i * 4.0f);
+        glScalef(3.8f, 1.8f, 2.3f);
+        glutSolidCube(1.0);
+        glPopMatrix();
+        
+        // Lado direito
+        glPushMatrix();
+        glTranslatef(8.0f, ALTURA_PLATAFORMA + 0.9f, 15.0f - i * 4.0f);
+        glScalef(3.8f, 1.8f, 2.3f);
+        glutSolidCube(1.0);
+        glPopMatrix();
+    }
+    
+    // Altar
+    glPushMatrix();
+    glTranslatef(0.0f, ALTURA_PLATAFORMA + 2.5f, -35.0f);
+    glScalef(9.0f, 3.5f, 4.5f);
+    glutSolidCube(1.0);
+    glPopMatrix();
+    
+    // Velas (geometria fina)
+    float posicoes_velas[][2] = {
+        {-4.0f, -35.0f},  // Esquerda
+        {0.0f, -35.0f},   // Centro
+        {4.0f, -35.0f}    // Direita
+    };
+    
+    for(int i = 0; i < 3; i++) {
+        glPushMatrix();
+        glTranslatef(posicoes_velas[i][0], ALTURA_PLATAFORMA + 4.5f, posicoes_velas[i][1]);
+        glScalef(0.25f, 1.2f, 0.25f);
+        glutSolidCube(1.0);
+        glPopMatrix();
+    }
+}
+
+void SistemaSombras::desenhar_debug_shadow_map(float x, float y, float width, float height) {
+    if (!shadow_mapping_enabled) return;
+    
+    // Salvar estado
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+    
+    // Desabilitar iluminação
+    glDisable(GL_LIGHTING);
+    glDisable(GL_DEPTH_TEST);
+    
+    // Configurar projeção ortográfica
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, glutGet(GLUT_WINDOW_WIDTH), 0, glutGet(GLUT_WINDOW_HEIGHT), -1, 1);
+    
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
+    
+    // Desenhar quad com a shadow map
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, texture_shadow);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    
+    glBegin(GL_QUADS);
+        glTexCoord2f(0, 0); glVertex2f(x, y);
+        glTexCoord2f(1, 0); glVertex2f(x + width, y);
+        glTexCoord2f(1, 1); glVertex2f(x + width, y + height);
+        glTexCoord2f(0, 1); glVertex2f(x, y + height);
+    glEnd();
+    
+    glDisable(GL_TEXTURE_2D);
+    
+    // Restaurar matrizes
+    glPopMatrix();
+    glMatrixMode(GL_PROJECTION);
+    glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    
+    // Restaurar estado
+    glPopAttrib();
+}

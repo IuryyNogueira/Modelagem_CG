@@ -1,191 +1,99 @@
 #include "sombras.h"
-#include "interior.h"
-#include "parede.h"
+#include "constantes.h"
 #include <iostream>
 #include <cstring>
+#include <GL/glut.h>
 
 SistemaSombras sistema_sombras;
 
 SistemaSombras::SistemaSombras() {
-    // Inicializar matrizes como identidade
-    memset(matriz_sombra_chao, 0, sizeof(matriz_sombra_chao));
-    memset(matriz_sombra_plataforma, 0, sizeof(matriz_sombra_plataforma));
-    
-    matriz_sombra_chao[0] = matriz_sombra_chao[5] = 
-    matriz_sombra_chao[10] = matriz_sombra_chao[15] = 1.0f;
-    
-    matriz_sombra_plataforma[0] = matriz_sombra_plataforma[5] = 
-    matriz_sombra_plataforma[10] = matriz_sombra_plataforma[15] = 1.0f;
+    fbo_shadow = 0;
+    texture_shadow = 0;
+    rbo_depth = 0;
+    shadow_map_width = 2048;
+    shadow_map_height = 2048;
+    shader_shadow_program = 0;
+    shader_scene_program = 0;
+    vertex_shader_shadow = 0;
+    fragment_shader_shadow = 0;
+    vertex_shader_scene = 0;
+    fragment_shader_scene = 0;
+    shadow_bias = 0.005f;
+    shadow_intensity = 0.7f;
+    shadow_mapping_enabled = false;
+    light_position[0] = 50.0f;
+    light_position[1] = 80.0f;
+    light_position[2] = 50.0f;
+    light_target[0] = 0.0f;
+    light_target[1] = 0.0f;
+    light_target[2] = 0.0f;
+    memset(light_projection_matrix, 0, sizeof(light_projection_matrix));
+    memset(light_view_matrix, 0, sizeof(light_view_matrix));
+    memset(shadow_matrix, 0, sizeof(shadow_matrix));
+    memset(bias_matrix, 0, sizeof(bias_matrix));
+    bias_matrix[0] = 0.5f; bias_matrix[5] = 0.5f; bias_matrix[10] = 0.5f;
+    bias_matrix[12] = 0.5f; bias_matrix[13] = 0.5f; bias_matrix[14] = 0.5f;
+    bias_matrix[15] = 1.0f;
 }
 
-void SistemaSombras::inicializar() {
-    std::cout << "Sistema de sombras inicializado" << std::endl;
+SistemaSombras::~SistemaSombras() {
+    finalizar();
 }
 
-void SistemaSombras::calcular_matriz_sombra_planar(GLfloat matriz[16], 
-                                                    GLfloat luz_pos[4],
-                                                    GLfloat plano[4]) {
-    // Plano: ax + by + cz + d = 0
-    // luz_pos: [x, y, z, w] onde w=0 para luz direcional, w=1 para pontual
-    
-    GLfloat a = plano[0];
-    GLfloat b = plano[1];
-    GLfloat c = plano[2];
-    GLfloat d = plano[3];
-    
-    GLfloat lx = luz_pos[0];
-    GLfloat ly = luz_pos[1];
-    GLfloat lz = luz_pos[2];
-    GLfloat lw = luz_pos[3];
-    
-    // dot = a*lx + b*ly + c*lz + d*lw
-    GLfloat dot = a * lx + b * ly + c * lz + d * lw;
-    
-    // Construir matriz de projeção de sombra
-    matriz[0]  = dot - a * lx;
-    matriz[1]  = -b * lx;
-    matriz[2]  = -c * lx;
-    matriz[3]  = -d * lx;
-    
-    matriz[4]  = -a * ly;
-    matriz[5]  = dot - b * ly;
-    matriz[6]  = -c * ly;
-    matriz[7]  = -d * ly;
-    
-    matriz[8]  = -a * lz;
-    matriz[9]  = -b * lz;
-    matriz[10] = dot - c * lz;
-    matriz[11] = -d * lz;
-    
-    matriz[12] = -a * lw;
-    matriz[13] = -b * lw;
-    matriz[14] = -c * lw;
-    matriz[15] = dot - d * lw;
+bool SistemaSombras::carregar_shader(const char* filename, std::string& source) {
+    std::cout << "Função não implementada" << std::endl;
+    return false;
 }
 
-void SistemaSombras::iniciar_sombra_chao(GLfloat luz_pos[4]) {
-    // Plano do chão interno: y = 1.6 (altura do piso da igreja)
-    GLfloat plano_chao[4] = {0.0f, 1.0f, 0.0f, -1.6f};
-    calcular_matriz_sombra_planar(matriz_sombra_chao, luz_pos, plano_chao);
-    
-    // Configurar estado OpenGL para sombras
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
-    
-    glDisable(GL_LIGHTING);
-    glDisable(GL_TEXTURE_2D);
-    glEnable(GL_DEPTH_TEST); // Habilitar depth test para evitar bugs
-    glDepthMask(GL_FALSE); // Mas não escrever no depth buffer
-    
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    // Sombra mais suave e sutil
-    GLfloat cor_sombra_suave[4] = {0.0f, 0.0f, 0.0f, 0.25f};
-    glColor4fv(cor_sombra_suave);
-    
-    // Usar polygon offset para evitar z-fighting
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    glPolygonOffset(-1.0f, -1.0f);
-    
-    glPushMatrix();
-    glMultMatrixf(matriz_sombra_chao);
+GLuint SistemaSombras::compilar_shader(GLenum type, const char* source) {
+    return 0;
 }
 
-void SistemaSombras::iniciar_sombra_plataforma(GLfloat luz_pos[4]) {
-    // Plano da plataforma: y = 1.51 (topo da plataforma)
-    GLfloat plano_plataforma[4] = {0.0f, 1.0f, 0.0f, -1.51f};
-    calcular_matriz_sombra_planar(matriz_sombra_plataforma, luz_pos, plano_plataforma);
-    
-    // Configurar estado OpenGL para sombras
-    glPushAttrib(GL_ALL_ATTRIB_BITS);
-    
-    glDisable(GL_LIGHTING);
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_DEPTH_TEST);
-    
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    
-    glColor4fv(cor_sombra);
-    
-    glPushMatrix();
-    glMultMatrixf(matriz_sombra_plataforma);
+GLuint SistemaSombras::criar_programa_shader(GLuint vertex_shader, GLuint fragment_shader) {
+    return 0;
 }
 
-void SistemaSombras::finalizar_sombra() {
-    glPopMatrix();
-    glDisable(GL_POLYGON_OFFSET_FILL);
-    glDepthMask(GL_TRUE);
-    glPopAttrib();
+bool SistemaSombras::inicializar(int width, int height) {
+    std::cout << "Shadow Mapping: Funcionalidade em desenvolvimento." << std::endl;
+    std::cout << "Sistema continuará sem sombras avançadas." << std::endl;
+    shadow_mapping_enabled = false;
+    return false;
 }
 
-void SistemaSombras::desenhar_sombras_interiores() {
-    // Desenhar geometria simplificada dos objetos internos
-    // (as sombras serão projetadas pela matriz ativa)
-    
-    // Bancos (8 de cada lado) - sombras mais suaves e corretas
-    for(int i = 0; i < 8; i++) {
-        // Lado esquerdo
-        glPushMatrix();
-        glTranslatef(-8.0f, 1.6f, 15.0f - i * 4.0f);
-        glScalef(3.8f, 1.8f, 2.3f);
-        glutSolidCube(1.0);
-        glPopMatrix();
-        
-        // Lado direito
-        glPushMatrix();
-        glTranslatef(8.0f, 1.6f, 15.0f - i * 4.0f);
-        glScalef(3.8f, 1.8f, 2.3f);
-        glutSolidCube(1.0);
-        glPopMatrix();
-    }
-    
-    // Altar - sombra mais definida
-    glPushMatrix();
-    glTranslatef(0.0f, 2.5f, -35.0f);
-    glScalef(9.0f, 3.5f, 4.5f);
-    glutSolidCube(1.0);
-    glPopMatrix();
-    
-    // Velas (3 no altar) - sombras finas
-    float posicoes_velas[][2] = {
-        {-4.0f, -35.0f},  // Esquerda
-        {0.0f, -35.0f},   // Centro
-        {4.0f, -35.0f}    // Direita
-    };
-    
-    for(int i = 0; i < 3; i++) {
-        glPushMatrix();
-        glTranslatef(posicoes_velas[i][0], 4.5f, posicoes_velas[i][1]);
-        glScalef(0.25f, 1.2f, 0.25f);
-        glutSolidCube(1.0);
-        glPopMatrix();
-    }
+void SistemaSombras::finalizar() {
+    std::cout << "Sistema de sombras finalizado." << std::endl;
 }
 
-void SistemaSombras::desenhar_sombras_exteriores() {
-    // Sombras simplificadas da estrutura externa da igreja na plataforma
-    
-    // Paredes laterais principais
-    for(int lado = -1; lado <= 1; lado += 2) {
-        glPushMatrix();
-        glTranslatef(lado * 12.0f, 8.0f, 0.0f);
-        glScalef(2.0f, 14.0f, 40.0f);
-        glutSolidCube(1.0);
-        glPopMatrix();
-    }
-    
-    // Parede frontal
-    glPushMatrix();
-    glTranslatef(0.0f, 8.0f, 22.0f);
-    glScalef(24.0f, 14.0f, 2.0f);
-    glutSolidCube(1.0);
-    glPopMatrix();
-    
-    // Parede traseira
-    glPushMatrix();
-    glTranslatef(0.0f, 8.0f, -38.0f);
-    glScalef(24.0f, 14.0f, 2.0f);
-    glutSolidCube(1.0);
-    glPopMatrix();
+void SistemaSombras::configurar_luz(float pos_x, float pos_y, float pos_z,
+                                    float target_x, float target_y, float target_z) {
+    light_position[0] = pos_x;
+    light_position[1] = pos_y;
+    light_position[2] = pos_z;
+    light_target[0] = target_x;
+    light_target[1] = target_y;
+    light_target[2] = target_z;
+}
+
+void SistemaSombras::calcular_matriz_luz() {
+}
+
+void SistemaSombras::multiplicar_matrizes(const GLfloat* a, const GLfloat* b, GLfloat* result) {
+}
+
+void SistemaSombras::iniciar_render_shadow_map() {
+}
+
+void SistemaSombras::finalizar_render_shadow_map() {
+}
+
+void SistemaSombras::iniciar_render_cena() {
+}
+
+void SistemaSombras::finalizar_render_cena() {
+}
+
+void SistemaSombras::desenhar_geometria_shadow_map() {
+}
+
+void SistemaSombras::desenhar_debug_shadow_map(float x, float y, float width, float height) {
 }

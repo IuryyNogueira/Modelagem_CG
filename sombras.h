@@ -2,43 +2,83 @@
 #define SOMBRAS_H
 
 #include <GL/gl.h>
+#include <GL/glext.h>
 #include <cmath>
+#include <string>
 
-// Sistema de shadow mapping e sombras projetadas
+// Sistema de Shadow Mapping com FBO
 class SistemaSombras {
 private:
-    // Matriz de projeção de sombra no plano
-    GLfloat matriz_sombra_chao[16];
-    GLfloat matriz_sombra_plataforma[16];
+    // Shadow Map
+    GLuint fbo_shadow;              // Frame Buffer Object para shadow map
+    GLuint texture_shadow;          // Textura da shadow map
+    GLuint rbo_depth;               // Render Buffer Object para depth
+    int shadow_map_width;           // Largura da shadow map
+    int shadow_map_height;          // Altura da shadow map
     
-    // Cor da sombra (semi-transparente)
-    GLfloat cor_sombra[4] = {0.0f, 0.0f, 0.0f, 0.5f};
+    // Shaders
+    GLuint shader_shadow_program;   // Programa shader para gerar shadow map
+    GLuint shader_scene_program;    // Programa shader para renderizar cena com sombras
     
-    // Calcular matriz de projeção de sombra planar
-    void calcular_matriz_sombra_planar(GLfloat matriz[16], 
-                                       GLfloat luz_pos[4],
-                                       GLfloat plano[4]);
+    GLuint vertex_shader_shadow;
+    GLuint fragment_shader_shadow;
+    GLuint vertex_shader_scene;
+    GLuint fragment_shader_scene;
+    
+    // Matrizes
+    GLfloat light_projection_matrix[16];
+    GLfloat light_view_matrix[16];
+    GLfloat shadow_matrix[16];      // Matriz combinada para shader
+    GLfloat bias_matrix[16];        // Matriz de bias para conversão de coordenadas
+    
+    // Parâmetros
+    float shadow_bias;              // Bias para evitar shadow acne
+    float shadow_intensity;         // Intensidade da sombra (0-1)
+    bool shadow_mapping_enabled;
+    
+    // Posição e direção da luz
+    GLfloat light_position[3];
+    GLfloat light_target[3];
+    
+    // Funções auxiliares
+    bool carregar_shader(const char* filename, std::string& source);
+    GLuint compilar_shader(GLenum type, const char* source);
+    GLuint criar_programa_shader(GLuint vertex_shader, GLuint fragment_shader);
+    void calcular_matriz_luz();
+    void multiplicar_matrizes(const GLfloat* a, const GLfloat* b, GLfloat* result);
     
 public:
     SistemaSombras();
+    ~SistemaSombras();
     
-    // Inicializar sistema de sombras
-    void inicializar();
+    // Inicializar sistema de shadow mapping
+    bool inicializar(int width = 2048, int height = 2048);
+    void finalizar();
     
-    // Começar renderização de sombras no chão
-    void iniciar_sombra_chao(GLfloat luz_pos[4]);
+    // Configurar luz para sombras
+    void configurar_luz(float pos_x, float pos_y, float pos_z,
+                       float target_x, float target_y, float target_z);
     
-    // Começar renderização de sombras na plataforma
-    void iniciar_sombra_plataforma(GLfloat luz_pos[4]);
+    // Primeira passada: renderizar shadow map
+    void iniciar_render_shadow_map();
+    void finalizar_render_shadow_map();
     
-    // Finalizar renderização de sombras
-    void finalizar_sombra();
+    // Segunda passada: renderizar cena com sombras
+    void iniciar_render_cena();
+    void finalizar_render_cena();
     
-    // Renderizar sombras de todos os objetos internos
-    void desenhar_sombras_interiores();
+    // Desenhar objetos para shadow map (geometria simplificada)
+    void desenhar_geometria_shadow_map();
     
-    // Renderizar sombras dos objetos externos
-    void desenhar_sombras_exteriores();
+    // Configurações
+    void definir_bias(float bias) { shadow_bias = bias; }
+    void definir_intensidade(float intensity) { shadow_intensity = intensity; }
+    void habilitar(bool enable) { shadow_mapping_enabled = enable; }
+    bool esta_habilitado() const { return shadow_mapping_enabled; }
+    
+    // Debug
+    void desenhar_debug_shadow_map(float x, float y, float width, float height);
+    GLuint obter_textura_shadow() const { return texture_shadow; }
 };
 
 // Instância global

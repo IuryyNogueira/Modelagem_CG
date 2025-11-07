@@ -12,7 +12,31 @@
 #include "janela.h"
 
 void desenha_igreja() {
+    // ===== PRIMEIRA PASSADA: RENDERIZAR SHADOW MAP =====
+    if (sistema_sombras.esta_habilitado()) {
+        // Atualizar posição da luz baseada no sol
+        GLfloat light_pos[4];
+        glGetLightfv(GL_LIGHT0, GL_POSITION, light_pos);
+        
+        // Configurar luz para shadow mapping
+        sistema_sombras.configurar_luz(light_pos[0], light_pos[1], light_pos[2], 
+                                       0.0f, 0.0f, 0.0f);
+        
+        // Iniciar renderização da shadow map
+        sistema_sombras.iniciar_render_shadow_map();
+        
+        // Desenhar geometria simplificada para shadow map
+        sistema_sombras.desenhar_geometria_shadow_map();
+        
+        // Finalizar renderização da shadow map
+        sistema_sombras.finalizar_render_shadow_map();
+    }
+    
+    // ===== SEGUNDA PASSADA: RENDERIZAR CENA COM SOMBRAS =====
     glPushMatrix();
+    
+    // Iniciar renderização com shaders de sombra (se disponível)
+    sistema_sombras.iniciar_render_cena();
     
     // Desenhar a plataforma com rampas primeiro
     desenha_plataforma();
@@ -29,32 +53,20 @@ void desenha_igreja() {
     // Desenhar o telhado
     desenha_telhas();
 
-    // Desenhar escada na frente da igreja (direcionada à porta)
-    // glPushMatrix();
-    // glTranslatef(0.0f, 0.0f, Z_ESCADA); // Posicionar a escada na frente da igreja
+    // Desenhar escada na frente da igreja
     desenha_escada();
-    // glPopMatrix();
 
-    // // Desenhar cruz no topo
+    // Desenhar arco
     desenha_arco();
+    
+    // Finalizar renderização com sombras
+    sistema_sombras.finalizar_render_cena();
     
     glPopMatrix();
     
-    // ===== FEIXES DE LUZ VOLUMÉTRICOS =====
+    // ===== FEIXES DE LUZ VOLUMÉTRICOS (sem sombras) =====
     sistema_feixes_luz.desenhar_todos_feixes();
     
-    // Sombras desabilitadas (causando artefatos visuais)
-    // ===== RENDERIZAR SOMBRAS SUTIS =====
-    // GLfloat pos_luz_sol[4];
-    // glGetLightfv(GL_LIGHT0, GL_POSITION, pos_luz_sol);
-    // if (pos_luz_sol[3] == 0.0f) {
-    //     float distancia = 500.0f;
-    //     pos_luz_sol[0] *= distancia;
-    //     pos_luz_sol[1] *= distancia;
-    //     pos_luz_sol[2] *= distancia;
-    //     pos_luz_sol[3] = 1.0f;
-    // }
-    // sistema_sombras.iniciar_sombra_chao(pos_luz_sol);
-    // sistema_sombras.desenhar_sombras_interiores();
-    // sistema_sombras.finalizar_sombra();
+    // ===== DEBUG: Desenhar shadow map no canto da tela (descomente para debug) =====
+    // sistema_sombras.desenhar_debug_shadow_map(10, 10, 256, 256);
 }
