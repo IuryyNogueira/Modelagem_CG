@@ -178,20 +178,20 @@ void atualiza_movimento() {
     
     float move_x = 0.0f, move_z = 0.0f;
     
-    // Movimento com WASD
-    if (keyStates['w']) {
+    // Movimento com WASD (minúsculas E maiúsculas)
+    if (keyStates['w'] || keyStates['W']) {
         move_x += sin(dir);
         move_z += -cos(dir);
     }
-    if (keyStates['s']) {
+    if (keyStates['s'] || keyStates['S']) {
         move_x -= sin(dir);
         move_z -= -cos(dir);
     }
-    if (keyStates['a']) {
+    if (keyStates['a'] || keyStates['A']) {
         move_x -= cos(dir);
         move_z -= sin(dir);
     }
-    if (keyStates['d']) {
+    if (keyStates['d'] || keyStates['D']) {
         move_x += cos(dir);
         move_z += sin(dir);
     }
@@ -214,130 +214,98 @@ void atualiza_movimento() {
         float nova_pos_x = pos_x + move_x * VELOCIDADE * 0.5f;
         float nova_pos_z = pos_z + move_z * VELOCIDADE * 0.5f;
         
-        // Detecção de colisão com as paredes baseada nos blocos reais
+        // Detecção de colisão com as paredes
+        // APENAS verifica colisão se você JÁ está na área da igreja ou perto dela
         bool colisao = false;
-        float margem = 0.5f; // Margem para não encostar diretamente na parede
+        float margem = 0.5f; // Margem de segurança do jogador
         
-        // Baseado nas paredes definidas em parede.cpp:
+        // Verificar se está na área relevante (dentro ou perto da igreja)
+        bool na_area_igreja = (pos_x > -X_PLATAFORMA_IGREJA/2 - 5.0f && pos_x < X_PLATAFORMA_IGREJA/2 + 5.0f &&
+                               pos_z > -Z_PLATAFORMA_IGREJA/2 - 5.0f && pos_z < Z_PLATAFORMA_IGREJA/2 + 5.0f);
         
-        // Parede esquerda: posX = -X_INTERNO/2, largura = ESPESSURA_PAREDE
-        // Limites: X de (-X_INTERNO/2 - ESPESSURA_PAREDE/2) até (-X_INTERNO/2 + ESPESSURA_PAREDE/2)
-        float parede_esq_min = -X_INTERNO/2 - ESPESSURA_PAREDE/2 - margem;
-        float parede_esq_max = -X_INTERNO/2 + ESPESSURA_PAREDE/2 + margem;
+        if (na_area_igreja) {
+            // Área interna permitida (dentro das paredes)
+            float area_permitida_x_min = -X_INTERNO/2 + margem;
+            float area_permitida_x_max = X_INTERNO/2 - margem;
+            float area_permitida_z_min = -Z_INTERNO/2 + margem;
+            float area_permitida_z_max = Z_INTERNO/2 - margem;
         
-        // Parede direita: posX = X_INTERNO/2, largura = ESPESSURA_PAREDE  
-        float parede_dir_min = X_INTERNO/2 - ESPESSURA_PAREDE/2 - margem;
-        float parede_dir_max = X_INTERNO/2 + ESPESSURA_PAREDE/2 + margem;
+        // Se está dentro da área X da igreja
+        bool dentro_area_x = (nova_pos_x >= area_permitida_x_min && nova_pos_x <= area_permitida_x_max);
         
-        // Parede traseira: posZ = -Z_INTERNO/2, profundidade = ESPESSURA_PAREDE
-        float parede_tras_min = -Z_INTERNO/2 - ESPESSURA_PAREDE/2 - margem;
-        float parede_tras_max = -Z_INTERNO/2 + ESPESSURA_PAREDE/2 + margem;
-        
-        // Paredes frontais (duas laterais + central pequena)
-        // Parede frontal esquerda: posX = -X_INTERNO/2 + 12.0f/2, largura = 12.0f
-        float parede_front_esq_min = (-X_INTERNO/2 + 12.0f/2) - 12.0f/2 - margem;
-        float parede_front_esq_max = (-X_INTERNO/2 + 12.0f/2) + 12.0f/2 + margem;
-        
-        // Parede frontal direita: posX = X_INTERNO/2 - 12.0f/2, largura = 12.0f
-        float parede_front_dir_min = (X_INTERNO/2 - 12.0f/2) - 12.0f/2 - margem;
-        float parede_front_dir_max = (X_INTERNO/2 - 12.0f/2) + 12.0f/2 + margem;
-        
-        // Parede frontal central: posX = 0.0f, largura = ESPESSURA_PAREDE
-        float parede_front_cent_min = 0.0f - ESPESSURA_PAREDE/2 - margem;
-        float parede_front_cent_max = 0.0f + ESPESSURA_PAREDE/2 + margem;
-        
-        // Posição Z das paredes frontais
-        float parede_front_z = Z_INTERNO/2 - 0.075f;
-        float parede_front_z_min = parede_front_z - ESPESSURA_PAREDE/2 - margem;
-        float parede_front_z_max = parede_front_z + ESPESSURA_PAREDE/2 + margem;
-        
-        // Verificar colisão com parede esquerda
-        if (nova_pos_x >= parede_esq_min && nova_pos_x <= parede_esq_max &&
-            nova_pos_z >= -Z_INTERNO/2 && nova_pos_z <= Z_INTERNO/2) {
+        // Colidiu com parede esquerda
+        if (nova_pos_x < area_permitida_x_min && 
+            nova_pos_z >= area_permitida_z_min && nova_pos_z <= area_permitida_z_max) {
             colisao = true;
         }
         
-        // Verificar colisão com parede direita
-        if (nova_pos_x >= parede_dir_min && nova_pos_x <= parede_dir_max &&
-            nova_pos_z >= -Z_INTERNO/2 && nova_pos_z <= Z_INTERNO/2) {
+        // Colidiu com parede direita
+        if (nova_pos_x > area_permitida_x_max && 
+            nova_pos_z >= area_permitida_z_min && nova_pos_z <= area_permitida_z_max) {
             colisao = true;
         }
         
-        // Verificar colisão com parede traseira
-        if (nova_pos_z >= parede_tras_min && nova_pos_z <= parede_tras_max &&
-            nova_pos_x >= -X_INTERNO/2 && nova_pos_x <= X_INTERNO/2) {
+        // Colidiu com parede traseira
+        if (nova_pos_z < area_permitida_z_min && 
+            nova_pos_x >= area_permitida_x_min && nova_pos_x <= area_permitida_x_max) {
             colisao = true;
         }
         
-        // Verificar colisão com paredes frontais
-        if (nova_pos_z >= parede_front_z_min && nova_pos_z <= parede_front_z_max) {
-            // Parede frontal esquerda
-            if (nova_pos_x >= parede_front_esq_min && nova_pos_x <= parede_front_esq_max) {
-                colisao = true;
-            }
-            // Parede frontal direita
-            if (nova_pos_x >= parede_front_dir_min && nova_pos_x <= parede_front_dir_max) {
-                colisao = true;
-            }
-            // Parede frontal central (pequena)
-            if (nova_pos_x >= parede_front_cent_min && nova_pos_x <= parede_front_cent_max) {
+        // Verificar se está na área da escada (sem colisão)
+        bool na_escada = (nova_pos_x >= -X_ESCADA/2 && nova_pos_x <= X_ESCADA/2 &&
+                          nova_pos_z >= Z_INTERNO/2 && nova_pos_z <= Z_INTERNO/2 + Z_ESCADA + 0.5f);
+        
+        // Colidiu com parede frontal (verificar se NÃO está nas portas E NÃO está na escada)
+        if (nova_pos_z > area_permitida_z_max && dentro_area_x && !na_escada) {
+            // Definir áreas das portas laterais (sem parede)
+            // Porta esquerda: de -X_INTERNO/2 até ~-X_INTERNO/2 + 12.0f
+            // Porta direita: de X_INTERNO/2 - 12.0f até X_INTERNO/2
+            float porta_esq_x_max = -X_INTERNO/2 + 12.0f;
+            float porta_dir_x_min = X_INTERNO/2 - 12.0f;
+            
+            // Há parede frontal em 3 segmentos:
+            // 1. Esquerdo: -X_INTERNO/2 até -X_INTERNO/2 + 12.0f (porta esquerda)
+            // 2. Central: entre as portas (pequeno segmento)
+            // 3. Direito: X_INTERNO/2 - 12.0f até X_INTERNO/2 (porta direita)
+            
+            // Como simplificação: só há colisão se estiver no segmento central pequeno
+            float parede_central_x_min = porta_esq_x_max - margem;
+            float parede_central_x_max = porta_dir_x_min + margem;
+            
+            if (nova_pos_x >= parede_central_x_min && nova_pos_x <= parede_central_x_max) {
                 colisao = true;
             }
         }
         
         // Verificar colisão com portas laterais (só se estiverem fechadas)
         if (angulo_porta < 45.0f) { // Portas consideradas fechadas se ângulo < 45°
-            float porta_z = Z_INTERNO/2 + 0.1f; // Posição Z correta das portas (mais à frente)
-            float porta_z_min = porta_z - 0.6f - margem;
-            float porta_z_max = porta_z + 0.6f + margem;
+            // Portas ficam em Z_INTERNO/2, ou seja, na parede frontal
+            float porta_z_min = Z_INTERNO/2 - margem;
+            float porta_z_max = Z_INTERNO/2 + 1.0f; // Portas se projetam para fora
             
-            // Porta esquerda (centro do buraco real)
+            // Porta esquerda (centro do buraco na parede)
             float porta_esq_x = (-X_INTERNO/2 + 12.0f + 0.0f) / 2.0f;
-            float porta_esq_x_min = porta_esq_x - 0.6f - margem;
-            float porta_esq_x_max = porta_esq_x + 0.6f + margem;
+            float porta_esq_x_min = porta_esq_x - 1.2f;
+            float porta_esq_x_max = porta_esq_x + 1.2f;
             
             if (nova_pos_z >= porta_z_min && nova_pos_z <= porta_z_max &&
                 nova_pos_x >= porta_esq_x_min && nova_pos_x <= porta_esq_x_max) {
                 colisao = true;
             }
             
-            // Porta direita (centro do buraco real)
+            // Porta direita (centro do buraco na parede)
             float porta_dir_x = (0.0f + X_INTERNO/2 - 12.0f) / 2.0f;
-            float porta_dir_x_min = porta_dir_x - 0.6f - margem;
-            float porta_dir_x_max = porta_dir_x + 0.6f + margem;
+            float porta_dir_x_min = porta_dir_x - 1.2f;
+            float porta_dir_x_max = porta_dir_x + 1.2f;
             
             if (nova_pos_z >= porta_z_min && nova_pos_z <= porta_z_max &&
                 nova_pos_x >= porta_dir_x_min && nova_pos_x <= porta_dir_x_max) {
                 colisao = true;
             }
         }
+
         
-        // Verificar colisão com a escada
-        // A escada está posicionada no centro (X=0) e vai de Z_INTERNO/2+0.3f para trás por Z_ESCADA
-        float escada_x_min = -X_ESCADA/2 - margem;
-        float escada_x_max = X_ESCADA/2 + margem;
-        float escada_z_frente = Z_INTERNO/2 + 0.3f + margem;  // Frente da escada (mais à frente)
-        float escada_z_tras = Z_INTERNO/2 + 0.3f - Z_ESCADA - margem; // Trás da escada
-        
-        // Verificar se o jogador está na área horizontal da escada
-        if (nova_pos_x >= escada_x_min && nova_pos_x <= escada_x_max &&
-            nova_pos_z >= escada_z_tras && nova_pos_z <= escada_z_frente) {
-            
-            // Calcular a altura esperada do degrau na posição Z do jogador
-            float pos_relativa_z = escada_z_frente - nova_pos_z; // Distância da frente da escada
-            int degrau_atual = (int)(pos_relativa_z / PROFUNDIDADE_DEGRAU);
-            
-            // Limitar o degrau aos limites válidos
-            if (degrau_atual >= 0 && degrau_atual < NUM_DEGRAUS) {
-                float altura_degrau_atual = degrau_atual * ALTURA_DEGRAU;
-                
-                // Se o jogador está no nível do chão (pos_y ~= 0) e deveria estar num degrau elevado,
-                // impedir o movimento (simula que não pode atravessar o degrau)
-                if (pos_y < altura_degrau_atual + 0.5f) {
-                    colisao = true;
-                }
-            }
-        }
+        // Escada: sem colisão física, apenas ajuste de altura (feito depois)
         
         // Verificar colisão com o altar (posicionado em x=0, z=-Z_INTERNO/2 + 3.0f)
         float altar_x_min = -4.0f - margem; // Altar tem largura ~8.0f
@@ -367,37 +335,76 @@ void atualiza_movimento() {
             colisao = true;
         }
         
+        } // Fim do if (na_area_igreja)
+        
         // Aplicar movimento apenas se não houver colisão
         if (!colisao) {
             pos_x = nova_pos_x;
             pos_z = nova_pos_z;
         }
+    }
+    
+    // Ajuste de altura baseado na posição - ordem CORRETA para evitar afundamento
+    // SEMPRE executado, mesmo sem movimento
+    // Altura dos olhos padrão
+    float altura_olhos = 1.7f;
+    
+    // 1. PRIMEIRO: Verificar se está dentro da igreja (interior)
+    if (pos_x > -X_INTERNO/2 + 0.3f && pos_x < X_INTERNO/2 - 0.3f &&
+        pos_z > -Z_INTERNO/2 + 0.3f && pos_z < Z_INTERNO/2 - 0.3f) {
+        // Dentro da igreja - altura da plataforma
+        pos_y = altura_olhos + ALTURA_PLATAFORMA;
+    }
+    // 2. SEGUNDO: Verificar se está na escada (FORA da igreja, na frente)
+    else if (pos_x >= -X_ESCADA/2 && pos_x <= X_ESCADA/2 &&
+             pos_z >= Z_INTERNO/2 && pos_z <= Z_INTERNO/2 + Z_ESCADA + 0.5f) {
+        // Na escada - interpolar altura suavemente
+        float pos_rel_z = pos_z - Z_INTERNO/2; // Distância da base da escada
         
-        // Ajuste de altura baseado na posição - ordem corrigida
-        // Primeiro verifica se está na escada
-        if (pos_z > 0 && pos_z <= Z_ESCADA && 
-            pos_x >= -X_ESCADA/2 && pos_x <= X_ESCADA/2) {
-            // Na escada - altura varia com a posição Z
-            float altura_escada = (pos_z / Z_ESCADA) * ALTURA_PLATAFORMA;
-            pos_y = 1.7f + altura_escada + 0.1f; // Offset para ficar sobre os degraus
+        // Se está antes da escada (entre igreja e escada)
+        if (pos_rel_z < 0.3f) {
+            // Transição suave entre plataforma e escada
+            pos_y = altura_olhos + ALTURA_PLATAFORMA;
+        } else {
+            // Na escada propriamente dita
+            float pos_na_escada = pos_rel_z - 0.3f; // Posição relativa dentro da escada
+            
+            if (pos_na_escada < 0.0f) pos_na_escada = 0.0f;
+            if (pos_na_escada > Z_ESCADA) pos_na_escada = Z_ESCADA;
+            
+            // Calcular degrau atual e próximo para interpolação
+            float degrau_float = pos_na_escada / PROFUNDIDADE_DEGRAU;
+            int degrau_atual = (int)degrau_float;
+            float fracao = degrau_float - degrau_atual; // Fração dentro do degrau
+            
+            // Limitar ao número de degraus
+            if (degrau_atual >= NUM_DEGRAUS) degrau_atual = NUM_DEGRAUS - 1;
+            
+            // Altura base do degrau atual
+            float altura_base = ALTURA_PLATAFORMA - (degrau_atual * ALTURA_DEGRAU);
+            
+            // Altura do próximo degrau (um degrau abaixo)
+            float altura_proxima = altura_base;
+            if (degrau_atual < NUM_DEGRAUS - 1) {
+                altura_proxima = ALTURA_PLATAFORMA - ((degrau_atual + 1) * ALTURA_DEGRAU);
+            }
+            
+            // Interpolar suavemente entre os dois degraus
+            float altura_interpolada = altura_base + (altura_proxima - altura_base) * fracao;
+            
+            pos_y = altura_olhos + altura_interpolada;
         }
-        // Depois verifica se está dentro do interior da igreja
-        else if (pos_x > -X_INTERNO/2 + 0.5f && pos_x < X_INTERNO/2 - 0.5f &&
-                 pos_z > -Z_INTERNO/2 + 0.5f && pos_z < Z_INTERNO/2 - 0.5f) {
-            // Dentro da igreja - altura da plataforma + offset
-            pos_y = 1.7f + ALTURA_PLATAFORMA + 0.15f;
-        }
-        // Depois verifica se está na plataforma externa
-        else if (pos_x >= -X_PLATAFORMA_IGREJA/2 && pos_x <= X_PLATAFORMA_IGREJA/2 &&
-                 pos_z >= -Z_PLATAFORMA_IGREJA/2 && pos_z <= Z_PLATAFORMA_IGREJA/2) {
-            // Na plataforma externa da igreja
-            pos_y = 1.7f + ALTURA_PLATAFORMA + 0.1f;
-        } 
-        // Por último, chão normal
-        else {
-            // No chão normal
-            pos_y = 1.7f;
-        }
+    }
+    // 3. TERCEIRO: Verificar se está na plataforma externa
+    else if (pos_x >= -X_PLATAFORMA_IGREJA/2 && pos_x <= X_PLATAFORMA_IGREJA/2 &&
+             pos_z >= -Z_PLATAFORMA_IGREJA/2 && pos_z <= Z_PLATAFORMA_IGREJA/2) {
+        // Na plataforma externa da igreja
+        pos_y = altura_olhos + ALTURA_PLATAFORMA;
+    } 
+    // 4. ÚLTIMO: Chão normal
+    else {
+        // No chão normal
+        pos_y = altura_olhos;
     }
     
     glutPostRedisplay();

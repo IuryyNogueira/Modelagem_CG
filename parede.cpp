@@ -38,12 +38,14 @@ void desenha_parede() {
     glColor3f(0.95f, 0.95f, 0.9f);
     
     // Parede esquerda com buracos para janelas (3 janelas)
+    // ESTENDIDA para cobrir toda a profundidade até as extremidades
     float janela_largura = 2.0f;
     float janela_altura = 1.5f;
     float espaco_janelas = (Z_INTERNO - (ESPESSURA_PAREDE * 2)) / 4.0f; // 4 espaços entre 3 janelas
     
-    // Segmentos da parede esquerda
-    desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA, espaco_janelas, -X_INTERNO/2, ALTURA_PLATAFORMA, -Z_INTERNO/2 + ESPESSURA_PAREDE + espaco_janelas/2);
+    // Segmentos da parede esquerda - ESTENDIDOS para cobrir até as extremidades
+    // Segmento traseiro (mais para trás)
+    desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA, espaco_janelas + ESPESSURA_PAREDE, -X_INTERNO/2, ALTURA_PLATAFORMA, -Z_INTERNO/2 + (espaco_janelas + ESPESSURA_PAREDE)/2);
     desenha_bloco(ESPESSURA_PAREDE, janela_altura, janela_largura, -X_INTERNO/2, ALTURA_PLATAFORMA, -Z_INTERNO/2 + ESPESSURA_PAREDE + espaco_janelas + janela_largura/2); // Base janela 1
     desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA - janela_altura, janela_largura, -X_INTERNO/2, ALTURA_PLATAFORMA + janela_altura + (PE_DIREITO_IGREJA - janela_altura)/2, -Z_INTERNO/2 + ESPESSURA_PAREDE + espaco_janelas + janela_largura/2); // Topo janela 1
     
@@ -55,10 +57,12 @@ void desenha_parede() {
     desenha_bloco(ESPESSURA_PAREDE, janela_altura, janela_largura, -X_INTERNO/2, ALTURA_PLATAFORMA, -Z_INTERNO/2 + ESPESSURA_PAREDE + 3*espaco_janelas + 2*janela_largura + janela_largura/2); // Base janela 3
     desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA - janela_altura, janela_largura, -X_INTERNO/2, ALTURA_PLATAFORMA + janela_altura + (PE_DIREITO_IGREJA - janela_altura)/2, -Z_INTERNO/2 + ESPESSURA_PAREDE + 3*espaco_janelas + 2*janela_largura + janela_largura/2); // Topo janela 3
     
-    desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA, espaco_janelas, -X_INTERNO/2, ALTURA_PLATAFORMA, Z_INTERNO/2 - ESPESSURA_PAREDE - espaco_janelas/2);
+    // Segmento frontal (mais para frente) - ESTENDIDO até a frente
+    desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA, espaco_janelas + ESPESSURA_PAREDE, -X_INTERNO/2, ALTURA_PLATAFORMA, Z_INTERNO/2 - (espaco_janelas + ESPESSURA_PAREDE)/2);
     
-    // Parede direita com buracos para janelas (3 janelas) - espelhada
-    desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA, espaco_janelas, X_INTERNO/2, ALTURA_PLATAFORMA, -Z_INTERNO/2 + ESPESSURA_PAREDE + espaco_janelas/2);
+    // Parede direita com buracos para janelas (3 janelas) - espelhada e ESTENDIDA
+    // Segmento traseiro (mais para trás)
+    desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA, espaco_janelas + ESPESSURA_PAREDE, X_INTERNO/2, ALTURA_PLATAFORMA, -Z_INTERNO/2 + (espaco_janelas + ESPESSURA_PAREDE)/2);
     desenha_bloco(ESPESSURA_PAREDE, janela_altura, janela_largura, X_INTERNO/2, ALTURA_PLATAFORMA, -Z_INTERNO/2 + ESPESSURA_PAREDE + espaco_janelas + janela_largura/2); // Base janela 1
     desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA - janela_altura, janela_largura, X_INTERNO/2, ALTURA_PLATAFORMA + janela_altura + (PE_DIREITO_IGREJA - janela_altura)/2, -Z_INTERNO/2 + ESPESSURA_PAREDE + espaco_janelas + janela_largura/2); // Topo janela 1
     
@@ -70,15 +74,18 @@ void desenha_parede() {
     desenha_bloco(ESPESSURA_PAREDE, janela_altura, janela_largura, X_INTERNO/2, ALTURA_PLATAFORMA, -Z_INTERNO/2 + ESPESSURA_PAREDE + 3*espaco_janelas + 2*janela_largura + janela_largura/2); // Base janela 3
     desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA - janela_altura, janela_largura, X_INTERNO/2, ALTURA_PLATAFORMA + janela_altura + (PE_DIREITO_IGREJA - janela_altura)/2, -Z_INTERNO/2 + ESPESSURA_PAREDE + 3*espaco_janelas + 2*janela_largura + janela_largura/2); // Topo janela 3
     
-    desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA, espaco_janelas, X_INTERNO/2, ALTURA_PLATAFORMA, Z_INTERNO/2 - ESPESSURA_PAREDE - espaco_janelas/2);
+    // Segmento frontal (mais para frente) - ESTENDIDO até a frente
+    desenha_bloco(ESPESSURA_PAREDE, PE_DIREITO_IGREJA, espaco_janelas + ESPESSURA_PAREDE, X_INTERNO/2, ALTURA_PLATAFORMA, Z_INTERNO/2 - (espaco_janelas + ESPESSURA_PAREDE)/2);
     
     // Parede traseira com textura de parede externa (mesma das outras)
+    // ESTENDIDA para cobrir toda a largura incluindo cantos
     glColor3f(0.95f, 0.95f, 0.9f);
-    desenha_bloco(X_INTERNO, PE_DIREITO_IGREJA, ESPESSURA_PAREDE, 0.0, ALTURA_PLATAFORMA, -Z_INTERNO/2);
+    desenha_bloco(X_INTERNO + ESPESSURA_PAREDE, PE_DIREITO_IGREJA, ESPESSURA_PAREDE, 0.0, ALTURA_PLATAFORMA, -Z_INTERNO/2);
     
     // Paredes frontais laterais (próximas à porta) - mesma textura
-    desenha_bloco(12.0f, PE_DIREITO_IGREJA, ESPESSURA_PAREDE, -X_INTERNO/2 + 12.0f/2, ALTURA_PLATAFORMA, Z_INTERNO/2 - .075);
-    desenha_bloco(12.0f, PE_DIREITO_IGREJA, ESPESSURA_PAREDE, X_INTERNO/2 - 12.0f/2, ALTURA_PLATAFORMA, Z_INTERNO/2 - .075);
+    // ESTENDIDAS para cobrir melhor os cantos
+    desenha_bloco(12.0f + ESPESSURA_PAREDE/2, PE_DIREITO_IGREJA, ESPESSURA_PAREDE, -X_INTERNO/2 + 12.0f/2, ALTURA_PLATAFORMA, Z_INTERNO/2 - .075);
+    desenha_bloco(12.0f + ESPESSURA_PAREDE/2, PE_DIREITO_IGREJA, ESPESSURA_PAREDE, X_INTERNO/2 - 12.0f/2, ALTURA_PLATAFORMA, Z_INTERNO/2 - .075);
     
     glDisable(GL_TEXTURE_2D);
 
