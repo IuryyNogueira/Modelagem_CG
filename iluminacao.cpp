@@ -60,8 +60,8 @@ void SistemaIluminacao::aplicar_luz_sol() {
     float altura_sol = sin(angulo) * 100.0f;
     float pos_horizontal = cos(angulo) * 80.0f;
     
-    // Intensidade varia com a hora - MUITO MAIS FORTE
-    float intensidade = std::max(0.3f, (float)sin(angulo) * 1.2f);
+    // Intensidade varia com a hora - MUITO FORTE para sombras visíveis
+    float intensidade = std::max(0.5f, (float)sin(angulo) * 1.8f);
     
     // Cor do sol (amarelo intenso ao meio-dia)
     float vermelho = 1.0f;
@@ -69,9 +69,9 @@ void SistemaIluminacao::aplicar_luz_sol() {
     float azul = 0.85f - (0.4f * (1.0f - intensidade));
     
     GLfloat posicao_sol[] = {pos_horizontal, altura_sol, 50.0f, 1.0f};
-    GLfloat cor_difusa[] = {vermelho * intensidade * 1.5f, verde * intensidade * 1.5f, azul * intensidade * 1.5f, 1.0f};
-    GLfloat cor_ambiente[] = {0.4f * intensidade, 0.4f * intensidade, 0.45f * intensidade, 1.0f};
-    GLfloat cor_especular[] = {1.0f * intensidade, 1.0f * intensidade, 0.98f * intensidade, 1.0f};
+    GLfloat cor_difusa[] = {vermelho * intensidade * 2.0f, verde * intensidade * 2.0f, azul * intensidade * 2.0f, 1.0f};
+    GLfloat cor_ambiente[] = {0.5f * intensidade, 0.5f * intensidade, 0.55f * intensidade, 1.0f};
+    GLfloat cor_especular[] = {1.2f * intensidade, 1.2f * intensidade, 1.0f * intensidade, 1.0f};
     
     glLightfv(GL_LIGHT0, GL_POSITION, posicao_sol);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, cor_difusa);
@@ -185,49 +185,50 @@ void SistemaIluminacao::aplicar_luz_entrada() {
 }
 
 void SistemaIluminacao::aplicar_luzes_velas() {
-    // Luzes das velas (GL_LIGHT5 e GL_LIGHT6)
-    // Velas próximas ao altar
+    // Luzes das velas (GL_LIGHT5, GL_LIGHT6, GL_LIGHT7) - MAIS INTENSAS
     
     // LUZ VELA ESQUERDA (GL_LIGHT5)
     glEnable(GL_LIGHT5);
-    GLfloat pos_vela_esq[] = {-4.5f, ALTURA_PLATAFORMA + 2.5f, -Z_INTERNO/2 + 2.5f, 1.0f};
-    GLfloat cor_vela[] = {1.0f, 0.7f, 0.3f, 1.0f}; // Laranja amarelado (chama de vela)
-    GLfloat cor_vela_ambiente[] = {0.3f, 0.2f, 0.1f, 1.0f};
+    GLfloat pos_vela_esq[] = {-4.5f, ALTURA_PLATAFORMA + 3.5f, -Z_INTERNO/2 + 2.5f, 1.0f};
+    GLfloat cor_vela[] = {1.0f, 0.8f, 0.4f, 1.0f}; // Laranja mais intenso
+    GLfloat cor_vela_ambiente[] = {0.5f, 0.4f, 0.2f, 1.0f}; // Ambiente mais forte
+    GLfloat cor_vela_especular[] = {1.0f, 0.9f, 0.6f, 1.0f};
     
     glLightfv(GL_LIGHT5, GL_POSITION, pos_vela_esq);
     glLightfv(GL_LIGHT5, GL_DIFFUSE, cor_vela);
     glLightfv(GL_LIGHT5, GL_AMBIENT, cor_vela_ambiente);
-    glLightfv(GL_LIGHT5, GL_SPECULAR, cor_vela);
+    glLightfv(GL_LIGHT5, GL_SPECULAR, cor_vela_especular);
     
-    // Atenuação forte (vela é luz fraca)
-    glLightf(GL_LIGHT5, GL_CONSTANT_ATTENUATION, 1.0f);
-    glLightf(GL_LIGHT5, GL_LINEAR_ATTENUATION, 0.2f);
-    glLightf(GL_LIGHT5, GL_QUADRATIC_ATTENUATION, 0.1f);
+    // Atenuação moderada (vela ilumina mais longe)
+    glLightf(GL_LIGHT5, GL_CONSTANT_ATTENUATION, 0.5f);
+    glLightf(GL_LIGHT5, GL_LINEAR_ATTENUATION, 0.05f);
+    glLightf(GL_LIGHT5, GL_QUADRATIC_ATTENUATION, 0.02f);
     
-    // LUZ VELA DIREITA (GL_LIGHT6)
+    // LUZ VELA CENTRO (GL_LIGHT6)
     glEnable(GL_LIGHT6);
-    GLfloat pos_vela_dir[] = {4.5f, ALTURA_PLATAFORMA + 2.5f, -Z_INTERNO/2 + 2.5f, 1.0f};
+    GLfloat pos_vela_centro[] = {0.0f, ALTURA_PLATAFORMA + 3.5f, -Z_INTERNO/2 + 2.5f, 1.0f};
     
-    glLightfv(GL_LIGHT6, GL_POSITION, pos_vela_dir);
+    glLightfv(GL_LIGHT6, GL_POSITION, pos_vela_centro);
     glLightfv(GL_LIGHT6, GL_DIFFUSE, cor_vela);
     glLightfv(GL_LIGHT6, GL_AMBIENT, cor_vela_ambiente);
-    glLightfv(GL_LIGHT6, GL_SPECULAR, cor_vela);
+    glLightfv(GL_LIGHT6, GL_SPECULAR, cor_vela_especular);
     
-    glLightf(GL_LIGHT6, GL_CONSTANT_ATTENUATION, 1.0f);
-    glLightf(GL_LIGHT6, GL_LINEAR_ATTENUATION, 0.2f);
-    glLightf(GL_LIGHT6, GL_QUADRATIC_ATTENUATION, 0.1f);
+    glLightf(GL_LIGHT6, GL_CONSTANT_ATTENUATION, 0.5f);
+    glLightf(GL_LIGHT6, GL_LINEAR_ATTENUATION, 0.05f);
+    glLightf(GL_LIGHT6, GL_QUADRATIC_ATTENUATION, 0.02f);
     
-    // LUZ VELA LATERAL ESQUERDA (GL_LIGHT7)
+    // LUZ VELA DIREITA (GL_LIGHT7)
     glEnable(GL_LIGHT7);
-    GLfloat pos_vela_lat_esq[] = {-7.0f, ALTURA_PLATAFORMA + 1.1f, Z_INTERNO/2 - 3.0f, 1.0f};
+    GLfloat pos_vela_dir[] = {4.5f, ALTURA_PLATAFORMA + 3.5f, -Z_INTERNO/2 + 2.5f, 1.0f};
     
-    glLightfv(GL_LIGHT7, GL_POSITION, pos_vela_lat_esq);
+    glLightfv(GL_LIGHT7, GL_POSITION, pos_vela_dir);
     glLightfv(GL_LIGHT7, GL_DIFFUSE, cor_vela);
     glLightfv(GL_LIGHT7, GL_AMBIENT, cor_vela_ambiente);
+    glLightfv(GL_LIGHT7, GL_SPECULAR, cor_vela_especular);
     
-    glLightf(GL_LIGHT7, GL_CONSTANT_ATTENUATION, 1.0f);
-    glLightf(GL_LIGHT7, GL_LINEAR_ATTENUATION, 0.25f);
-    glLightf(GL_LIGHT7, GL_QUADRATIC_ATTENUATION, 0.15f);
+    glLightf(GL_LIGHT7, GL_CONSTANT_ATTENUATION, 0.5f);
+    glLightf(GL_LIGHT7, GL_LINEAR_ATTENUATION, 0.05f);
+    glLightf(GL_LIGHT7, GL_QUADRATIC_ATTENUATION, 0.02f);
 }
 
 void SistemaIluminacao::atualizar(float delta_time) {

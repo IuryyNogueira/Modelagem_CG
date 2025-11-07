@@ -76,6 +76,9 @@ public:
     void habilitar(bool enable) { shadow_mapping_enabled = enable; }
     bool esta_habilitado() const { return shadow_mapping_enabled; }
     
+    // Renderizar sombras de todos os objetos internos
+    void desenhar_sombras_interiores();
+    
     // Debug
     void desenhar_debug_shadow_map(float x, float y, float width, float height);
     GLuint obter_textura_shadow() const { return texture_shadow; }
